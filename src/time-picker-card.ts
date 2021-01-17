@@ -194,6 +194,8 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
                   @toggle=${this.onPeriodOnToggle}
                 ></time-period>`
               : ''}
+          </div>
+          <div class=${classMap(this.rowClass)}>
             <time-unit
               .unit=${this.time_off.hour}
               @stepChange=${this.onHourOffStepChange}
@@ -341,7 +343,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
       .time-picker-row {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
         padding: 16px;
       }
@@ -356,7 +358,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
       .time-picker-content {
         display: flex;
-        flex-direction: row;
+        flex-direction: column;
         align-items: center;
         flex: 1 0 auto;
       }
