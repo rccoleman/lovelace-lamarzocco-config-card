@@ -18,8 +18,10 @@ import {
   DEFAULT_LAYOUT_ALIGN_CONTROLS,
   DEFAULT_LAYOUT_HOUR_MODE,
   ENTITY_DOMAIN,
+  SERVICE_DOMAIN,
 } from './const';
 import './editor';
+import { DayOfWeek } from './models/day-of-week';
 import { Hour } from './models/hour';
 import { Minute } from './models/minute';
 import { Second } from './models/second';
@@ -43,9 +45,12 @@ window.customCards.push({
 @customElement('time-picker-card')
 export class TimePickerCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
-  @property() private config!: TimePickerCardConfig;
-  @property() private time!: Time;
-  @property() private period!: Period;
+  @property({ attribute: false }) private config!: TimePickerCardConfig;
+  @property({ attribute: false }) private day_of_week!: DayOfWeek;
+  @property({ attribute: false }) private time_on!: Time;
+  @property({ attribute: false }) private time_off!: Time;
+  @property() private period_on!: Period;
+  @property() private period_off!: Period;
 
   private get entity(): HassEntity | undefined {
     return this.hass.states[this.config.entity];
@@ -114,51 +119,107 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
     }
 
-    if (!this.entity.attributes.has_time) {
-      return Partial.error(
-        `You must set an ${ENTITY_DOMAIN} entity that sets has_time: true`,
-        this.config
+    if (this.time_on == null) {
+      const hour_on = this.entity!.attributes.mon_on;
+      const minute_on = 0;
+      const second_on = 0;
+      const hourOnInstance = new Hour(hour_on, this.config.hour_step, this.config.hour_mode);
+      const minuteOnInstance = new Minute(minute_on, this.config.minute_step);
+      const secondOnInstance = new Second(second_on, this.config.second_step);
+      this.time_on = new Time(
+        hourOnInstance,
+        minuteOnInstance,
+        secondOnInstance,
+        this.config.link_values
       );
+
+      const hour_off = this.entity!.attributes.mon_off;
+      const minute_off = 0;
+      const second_off = 0;
+      const hourOffInstance = new Hour(hour_off, this.config.hour_step, this.config.hour_mode);
+      const minuteOffInstance = new Minute(minute_off, this.config.minute_step);
+      const secondOffInstance = new Second(second_off, this.config.second_step);
+      this.time_off = new Time(
+        hourOffInstance,
+        minuteOffInstance,
+        secondOffInstance,
+        this.config.link_values
+      );
+
+      this.period_on = hourOnInstance.value >= 12 ? Period.PM : Period.AM;
+      this.period_off = hourOffInstance.value >= 12 ? Period.PM : Period.AM;
+
+      this.day_of_week = new DayOfWeek(0);
     }
 
-    const { hour, minute, second } = this.entity!.attributes;
-    const hourInstance = new Hour(hour, this.config.hour_step, this.config.hour_mode);
-    const minuteInstance = new Minute(minute, this.config.minute_step);
-    const secondInstance = new Second(second, this.config.second_step);
-    this.time = new Time(hourInstance, minuteInstance, secondInstance, this.config.link_values);
-    this.period = hourInstance.value >= 12 ? Period.PM : Period.AM;
+    console.log(
+      'day_of_week: %s, hour_on: %d, hour_off: %d',
+      this.day_of_week.value,
+      this.time_on.hour.value,
+      this.time_off.hour.value
+    );
 
     return html`
       <ha-card class=${classMap(this.haCardClass)}>
-        ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
+        ${this.hasNameInHeader ? Partial.headerName(this.day_of_week.value!) : ''}
         <div class=${classMap(this.rowClass)}>
-          ${this.hasNameInside ? Partial.nestedName(this.name!, this.entity) : ''}
+          ${this.hasNameInside ? Partial.nestedName(this.day_of_week.value!, this.entity) : ''}
 
           <div class=${classMap(this.contentClass)}>
             <time-unit
-              .unit=${this.time.hour}
-              @stepChange=${this.onHourStepChange}
+              .unit=${this.time_on.hour}
+              @stepChange=${this.onHourOnStepChange}
               @update=${this.callHassService}
             ></time-unit>
-            <div class="time-separator">:</div>
-            <time-unit
-              .unit=${this.time.minute}
-              @stepChange=${this.onMinuteStepChange}
-              @update=${this.callHassService}
-            ></time-unit>
+            ${this.config.hide?.minutes === false
+              ? html`<div class="time-separator">:</div>
+                  <time-unit
+                    .unit=${this.time_on.minute}
+                    @stepChange=${this.onMinuteOnStepChange}
+                    @update=${this.callHassService}
+                  ></time-unit>`
+              : ''}
             ${this.config.hide?.seconds === false
               ? html`<div class="time-separator">:</div>
                   <time-unit
-                    .unit=${this.time.second}
-                    @stepChange=${this.onSecondStepChange}
+                    .unit=${this.time_on.second}
+                    @stepChange=${this.onSecondOnStepChange}
                     @update=${this.callHassService}
                   ></time-unit>`
               : ''}
             ${this.shouldShowPeriod
               ? html`<time-period
-                  .period=${this.period}
+                  .period=${this.period_on}
                   .mode=${this.config.layout?.hour_mode ?? DEFAULT_LAYOUT_HOUR_MODE}
-                  @toggle=${this.onPeriodToggle}
+                  @toggle=${this.onPeriodOnToggle}
+                ></time-period>`
+              : ''}
+            <time-unit
+              .unit=${this.time_off.hour}
+              @stepChange=${this.onHourOffStepChange}
+              @update=${this.callHassService}
+            ></time-unit>
+            ${this.config.hide?.minutes === false
+              ? html`<div class="time-separator">:</div>
+                  <time-unit
+                    .unit=${this.time_off.minute}
+                    @stepChange=${this.onMinuteOffStepChange}
+                    @update=${this.callHassService}
+                  ></time-unit>`
+              : ''}
+            ${this.config.hide?.seconds === false
+              ? html`<div class="time-separator">:</div>
+                  <time-unit
+                    .unit=${this.time_off.second}
+                    @stepChange=${this.onSecondOffStepChange}
+                    @update=${this.callHassService}
+                  ></time-unit>`
+              : ''}
+            ${this.shouldShowPeriod
+              ? html`<time-period
+                  .period=${this.period_off}
+                  .mode=${this.config.layout?.hour_mode ?? DEFAULT_LAYOUT_HOUR_MODE}
+                  @toggle=${this.onPeriodOffToggle}
                 ></time-period>`
               : ''}
           </div>
@@ -187,23 +248,43 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     return CARD_SIZE;
   }
 
-  private onPeriodToggle(): void {
-    this.time.hour.togglePeriod();
+  private onPeriodOnToggle(): void {
+    this.time_on.hour.togglePeriod();
     this.callHassService();
   }
 
-  private onHourStepChange(event: CustomEvent): void {
-    this.time.hourStep(event.detail.direction);
+  private onPeriodOffToggle(): void {
+    this.time_off.hour.togglePeriod();
     this.callHassService();
   }
 
-  private onMinuteStepChange(event: CustomEvent): void {
-    this.time.minuteStep(event.detail.direction);
+  private onHourOnStepChange(event: CustomEvent): void {
+    this.time_on.hourStep(event.detail.direction);
     this.callHassService();
   }
 
-  private onSecondStepChange(event: CustomEvent): void {
-    this.time.secondStep(event.detail.direction);
+  private onMinuteOnStepChange(event: CustomEvent): void {
+    this.time_on.minuteStep(event.detail.direction);
+    this.callHassService();
+  }
+
+  private onSecondOnStepChange(event: CustomEvent): void {
+    this.time_on.secondStep(event.detail.direction);
+    this.callHassService();
+  }
+
+  private onHourOffStepChange(event: CustomEvent): void {
+    this.time_off.hourStep(event.detail.direction);
+    this.callHassService();
+  }
+
+  private onMinuteOffStepChange(event: CustomEvent): void {
+    this.time_off.minuteStep(event.detail.direction);
+    this.callHassService();
+  }
+
+  private onSecondOffStepChange(event: CustomEvent): void {
+    this.time_off.secondStep(event.detail.direction);
     this.callHassService();
   }
 
@@ -212,10 +293,20 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       throw new Error('Unable to update datetime');
     }
 
-    return this.hass.callService(ENTITY_DOMAIN, 'set_datetime', {
-      entity_id: this.entity!.entity_id,
-      time: this.time.value,
-    });
+    console.log(
+      'Calling service with %s, %s, %s',
+      this.day_of_week.value.toLowerCase(),
+      this.time_on.hour.value,
+      this.time_off.hour.value
+    );
+
+    return Promise.resolve(undefined);
+
+    // return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
+    //   day_of_week: this.day_of_week.value.toLowerCase(),
+    //   hour_on: this.time_on.hour.value,
+    //   hour_off: this.time_off.hour.value,
+    // });
   }
 
   static get styles(): CSSResult {
@@ -295,7 +386,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     const datetimeEntity = entities.find((entityId) => computeDomain(entityId) === ENTITY_DOMAIN);
 
     return {
-      entity: datetimeEntity || 'input_datetime.example_entity',
+      entity: datetimeEntity || 'switch.buzz_auto_on_off',
       hour_mode: 24,
       hour_step: 1,
       minute_step: 5,

@@ -1,2 +1,4 @@
 node_modules/
 dist/
+copy
+.vscode/settings.json

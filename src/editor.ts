@@ -30,7 +30,7 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
   private static readonly CONFIG_CHANGED_EVENT = 'config-changed';
 
   @property({ type: Object }) hass!: HomeAssistant;
-  @property() private config!: TimePickerCardConfig;
+  @property({ attribute: false }) private config!: TimePickerCardConfig;
 
   private get entity(): HassEntity | undefined {
     return this.hass.states[this.config.entity];
@@ -98,79 +98,93 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
           .value=${this.config.hour_step || DEFAULT_HOUR_STEP}
           @value-changed=${this.onValueChange}
         ></paper-input>
-        <paper-input
-          type="number"
-          label="Minute Step (Optional)"
-          .configValue=${'minute_step'}
-          .value=${this.config.minute_step || DEFAULT_MINUTE_STEP}
-          @value-changed=${this.onValueChange}
-        ></paper-input>
-      </div>
-      <div class="side-by-side">
-        <div>
-          <ha-switch
-            style="margin-left: 10px"
-            .checked="${this.config.hide?.seconds === false}"
-            @change="${this.onHideSecondsChange}"
-          ></ha-switch>
-          Show seconds?
-        </div>
-        <paper-input
-          type="number"
-          label="Second Step (Optional)"
-          .configValue=${'second_step'}
-          .value=${this.config.second_step || DEFAULT_SECOND_STEP}
-          @value-changed=${this.onValueChange}
-        ></paper-input>
-      </div>
-      <div class="side-by-side">
-        <div>
-          <ha-switch
-            .checked="${this.config.hour_mode === 12}"
-            @change="${this.onHourModeChange}"
-          ></ha-switch>
-          12-Hour mode
-        </div>
-        ${this.config.hour_mode === 12
-          ? html`<div>
+        <div class="side-by-side">
+          <div>
+            <ha-switch
+              style="margin-left: 10px"
+              .checked="${this.config.hide?.minutes === false}"
+              @change="${this.onHideMinutesChange}"
+            ></ha-switch>
+            Show minutes?
+          </div>
+          <div>
+            <paper-input
+              type="number"
+              label="Minute Step (Optional)"
+              .configValue=${'minute_step'}
+              .value=${this.config.minute_step || DEFAULT_MINUTE_STEP}
+              @value-changed=${this.onValueChange}
+            ></paper-input>
+          </div>
+          <div class="side-by-side">
+            <div>
               <ha-switch
-                .checked="${this.config.layout?.hour_mode === 'single'}"
-                @change="${this.onHourModeLayoutChange}"
+                style="margin-left: 10px"
+                .checked="${this.config.hide?.seconds === false}"
+                @change="${this.onHideSecondsChange}"
               ></ha-switch>
-              "Single" hour mode layout
-            </div>`
-          : ''}
-      </div>
-      <div class="side-by-side">
-        <paper-dropdown-menu
-          style="width: 100%"
-          label="Align Controls (Optional)"
-          @value-changed=${this.onLayoutAlignChange}
-        >
-          <paper-listbox
-            slot="dropdown-content"
-            .selected=${Object.values(Layout.AlignControls).indexOf(
-              this.config.layout?.align_controls ?? DEFAULT_LAYOUT_ALIGN_CONTROLS
-            )}
-          >
-            ${Object.values(Layout.AlignControls).map((a) => html`<paper-item>${a}</paper-item>`)}
-          </paper-listbox>
-        </paper-dropdown-menu>
-        <div>
-          <ha-switch
-            .checked="${this.config.link_values}"
-            @change="${this.onLinkValuesChange}"
-          ></ha-switch>
-          Link Values
-        </div>
-      </div>
-      <div class="side-by-side">
-        <div>
-          <ha-switch
-            .checked="${this.config.layout?.embedded}"
-            @change="${this.onEmbeddedChange}"
-          ></ha-switch>
-          Embedded
+              Show seconds?
+            </div>
+            <paper-input
+              type="number"
+              label="Second Step (Optional)"
+              .configValue=${'second_step'}
+              .value=${this.config.second_step || DEFAULT_SECOND_STEP}
+              @value-changed=${this.onValueChange}
+            ></paper-input>
+          </div>
+          <div class="side-by-side">
+            <div>
+              <ha-switch
+                .checked="${this.config.hour_mode === 12}"
+                @change="${this.onHourModeChange}"
+              ></ha-switch>
+              12-Hour mode
+            </div>
+            ${this.config.hour_mode === 12
+              ? html`<div>
+                  <ha-switch
+                    .checked="${this.config.layout?.hour_mode === 'single'}"
+                    @change="${this.onHourModeLayoutChange}"
+                  ></ha-switch>
+                  "Single" hour mode layout
+                </div>`
+              : ''}
+          </div>
+          <div class="side-by-side">
+            <paper-dropdown-menu
+              style="width: 100%"
+              label="Align Controls (Optional)"
+              @value-changed=${this.onLayoutAlignChange}
+            >
+              <paper-listbox
+                slot="dropdown-content"
+                .selected=${Object.values(Layout.AlignControls).indexOf(
+                  this.config.layout?.align_controls ?? DEFAULT_LAYOUT_ALIGN_CONTROLS
+                )}
+              >
+                ${Object.values(Layout.AlignControls).map(
+                  (a) => html`<paper-item>${a}</paper-item>`
+                )}
+              </paper-listbox>
+            </paper-dropdown-menu>
+            <div>
+              <ha-switch
+                .checked="${this.config.link_values}"
+                @change="${this.onLinkValuesChange}"
+              ></ha-switch>
+              Link Values
+            </div>
+          </div>
+          <div class="side-by-side">
+            <div>
+              <ha-switch
+                .checked="${this.config.layout?.embedded}"
+                @change="${this.onEmbeddedChange}"
+              ></ha-switch>
+              Embedded
+            </div>
+          </div>
         </div>
       </div>
     </div>`;
@@ -189,6 +203,12 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
 
   private onHideNameChange({ target: { checked } }): void {
     const hide = { ...this.config.hide, name: !checked };
+    const newConfig = { ...this.config, hide };
+    this.dispatch(newConfig);
+  }
+
+  private onHideMinutesChange({ target: { checked } }): void {
+    const hide = { ...this.config.hide, minutes: !checked };
     const newConfig = { ...this.config, hide };
     this.dispatch(newConfig);
   }

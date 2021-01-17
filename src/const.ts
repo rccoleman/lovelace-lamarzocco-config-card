@@ -4,7 +4,8 @@ import { Layout } from './types';
 export const CARD_VERSION = pkg.version;
 export const CARD_SIZE = 3;
 
-export const ENTITY_DOMAIN = 'input_datetime';
+export const ENTITY_DOMAIN = 'switch';
+export const SERVICE_DOMAIN = 'lamarzocco';
 
 // Config defaults
 export const DEFAULT_HOUR_STEP = 1;

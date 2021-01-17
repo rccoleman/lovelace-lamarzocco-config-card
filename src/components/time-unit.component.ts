@@ -18,7 +18,7 @@ export class TimeUnitComponent extends LitElement {
   static readonly EVENT_UPDATE = 'update';
   static readonly EVENT_STEP_CHANGE = 'stepChange';
 
-  @property() private unit!: TimeUnit;
+  @property({ attribute: false }) private unit!: TimeUnit;
 
   render(): TemplateResult {
     return html`
@@ -47,6 +47,7 @@ export class TimeUnitComponent extends LitElement {
   onStepChangerClick(direction: Direction): void {
     const event = new CustomEvent(TimeUnitComponent.EVENT_STEP_CHANGE, { detail: { direction } });
     this.dispatchEvent(event);
+    this.requestUpdate();
   }
 
   private renderStepChanger(direction: Direction): TemplateResult {
