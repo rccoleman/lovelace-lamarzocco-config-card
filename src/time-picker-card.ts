@@ -43,7 +43,6 @@ window.customCards.push({
 export class TimePickerCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: TimePickerCardConfig;
-  // @property({ attribute: false }) private days!: Array<Day>;
   private days!: Map<string, Day>;
 
   private get entity(): HassEntity {
@@ -99,7 +98,14 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
   private get contentClass(): ClassInfo {
     return {
-      'time-picker-content': true,
+      'time-picker-control': true,
+      [`layout-${this.layoutAlign}`]: true,
+    };
+  }
+
+  private get controlClass(): ClassInfo {
+    return {
+      'time-picker-control': true,
       [`layout-${this.layoutAlign}`]: true,
     };
   }
@@ -118,24 +124,27 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       this.days = new Map();
 
       for (day_of_week of DAYS) {
-        day_of_week = day_of_week.toLowerCase();
+        // day_of_week = day_of_week.toLowerCase();
         this.days.set(
           day_of_week,
           new Day(
             day_of_week,
-            this.entity!.attributes[day_of_week + '_on'],
-            this.entity!.attributes[day_of_week + '_off'],
+            this.entity!.attributes[day_of_week.toLowerCase() + '_on'],
+            this.entity!.attributes[day_of_week.toLowerCase() + '_off'],
             this.config
           )
         );
       }
     }
 
-    return html`${repeat(
-      this.days.values(),
-      (day) => html`${this.hasNameInHeader ? Partial.headerName(day.day_of_week!) : ''}
-        <div class=${classMap(this.rowClass)}>
-        ${this.hasNameInside ? Partial.nestedName(day.day_of_week!, this.entity) : ''}
+    return html` ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
+      <ha-card class=${classMap(this.rowClass)}>
+        ${this.hasNameInside ? Partial.nestedName(this.name!, this.entity) : ''}
+        ${repeat(
+          this.days.values(),
+          (day) => html`
+        <div class=${classMap(this.controlClass)}>
+        <div>${day.day_of_week}</div>
         <time-unit
             .unit=${day.time_on.hour}
             @stepChange=${this.onHourOnStepChange}
@@ -170,8 +179,6 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
               ></time-period>`
             : ''
         }
-        </div>
-        <div class=${classMap(this.rowClass)}>
         <time-unit
             .unit=${day.time_off.hour}
             @stepChange=${this.onHourOffStepChange}
@@ -207,9 +214,9 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
             : ''
         }
         </div>
-    </div>`
-    )}
-    </ha-card>`;
+    </div></div>`
+        )}
+      </ha-card>`;
   }
 
   setConfig(config: TimePickerCardConfig): void {
@@ -320,7 +327,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       }
 
       .time-picker-header {
-        padding: 16px;
+        padding: 4px;
         color: var(--tpc-text-color);
         background-color: var(--tpc-elements-background-color);
         border-top-left-radius: var(--tpc-border-radius);
@@ -331,9 +338,16 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
       .time-picker-row {
         display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding: 4px;
+      }
+
+      .time-picker-control {
+        display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 16px;
+        padding: 4px;
       }
 
       .time-picker-row.embedded {
@@ -341,12 +355,12 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       }
 
       .time-picker-row.with-header-name {
-        padding: 8px 16px 16px;
+        padding: 8px 8px 8px;
       }
 
       .time-picker-content {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
         flex: 1 0 auto;
       }

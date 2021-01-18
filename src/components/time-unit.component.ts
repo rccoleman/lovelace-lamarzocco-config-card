@@ -39,15 +39,14 @@ export class TimeUnitComponent extends LitElement {
   }
 
   onInputChange({ target: { value } }: { target: HTMLInputElement }): void {
-    const dayOfWeek = this.unit.dayOfWeek.toLowerCase();
-
+    const dayOfWeek = this.unit.dayOfWeek;
     this.unit.setStringValue(value);
     const event = new CustomEvent(TimeUnitComponent.EVENT_UPDATE, { detail: { dayOfWeek } });
     this.dispatchEvent(event);
   }
 
   onStepChangerClick(direction: Direction): void {
-    const dayOfWeek = this.unit.dayOfWeek.toLowerCase();
+    const dayOfWeek = this.unit.dayOfWeek;
     const event = new CustomEvent(TimeUnitComponent.EVENT_STEP_CHANGE, {
       detail: { direction, dayOfWeek },
     });
