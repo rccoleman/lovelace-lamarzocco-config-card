@@ -8,21 +8,16 @@ import { TimeUnit } from './time-unit';
 export class Hour extends TimeUnit {
   private static readonly VALUE_LIMIT = 24;
 
+  minValue = this.hourMode === 12 ? 1 : 0; // there is no 00:00 AM -> it's 12:00 AM.
+  maxValue = this.hourMode === 12 ? 12 : Hour.VALUE_LIMIT - 1;
+
   constructor(
     value: number,
     step = DEFAULT_HOUR_STEP,
     dayOfWeek: string,
     private hourMode?: HourMode
   ) {
-    super(value, step, dayOfWeek, Hour.VALUE_LIMIT);
-  }
-
-  get minValue(): number {
-    return this.hourMode === 12 ? 1 : 0; // there is no 00:00 AM -> it's 12:00 AM.
-  }
-
-  get maxValue(): number {
-    return this.hourMode === 12 ? 12 : Hour.VALUE_LIMIT - 1;
+    super(value, step, dayOfWeek);
   }
 
   togglePeriod(): void {

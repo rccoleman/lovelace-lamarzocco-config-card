@@ -103,7 +103,6 @@ layout:
 | type        | string       | **Required** | `custom:time-picker-card`                                                                                 |                          |
 | entity      | string       | **Required** | [Input Datetime](https://www.home-assistant.io/integrations/input_datetime/) entity with `has_time: true` |                          |
 | name        | string       | **Optional** | Card name                                                                                                 | Entity's `friendly_name` |
-| link_values | boolean      | **Optional** | If enabled, will change hour when minutes overflow. E.g. will go from 11:55 to 12:00, instead of 11:00    | `false`                  |
 | hour_mode   | `12` or `24` | **Optional** | Hour format. If `12`, card will show AM/PM picker                                                         | `24`                     |
 | hour_step   | number       | **Optional** | Hour change when clicking arrows                                                                          | `1`                      |
 | minute_step | number       | **Optional** | Minute change when clicking arrows                                                                        | `5`                      |
@@ -117,12 +116,12 @@ layout:
 | hour_mode      | `single`, `double`        | **Optional** | Whether to show both AM/PM or just the current mode. In `single` mode, tap the value to change it. | `double` |
 | align_controls | `left`, `center`, `right` | **Optional** | Horizontal alignment of the controls                                                               | `center` |
 | name           | `header`, `inside`        | **Optional** | Whether to show the name as a header or inside the card                                            | `header` |
-| embedded       | boolean                   | **Optional** | Render with embedded style - disables padding, box shadow, and card header                                            | `false` |
+| embedded       | boolean                   | **Optional** | Render with embedded style - disables padding, box shadow, and card header                         | `false`  |
 
 ### Hide Object
 
 | Name    | Type    | Requirement  | Description         | Default |
-| ----    | ------- | ------------ | ------------------- | ------- |
+| ------- | ------- | ------------ | ------------------- | ------- |
 | name    | boolean | **Optional** | Hides the card name | `false` |
 | seconds | boolean | **Optional** | Hides seconds input | `true`  |
 

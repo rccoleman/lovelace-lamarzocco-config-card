@@ -18,14 +18,8 @@ export abstract class TimeUnit {
    * @param _value current value
    * @param _step how much to increase / decrease the value when step-changing
    * @param _dayOfWeek the day of the week associated with this entity
-   * @param _limit value upper limit
    */
-  constructor(
-    private _value: number,
-    protected _step: number,
-    protected _dayOfWeek: string,
-    protected _limit: number
-  ) {}
+  constructor(private _value: number, protected _step: number, protected _dayOfWeek: string) {}
 
   get value(): number {
     return this._value;
@@ -58,11 +52,13 @@ export abstract class TimeUnit {
   }
 
   private increment(step: number = this._step): void {
-    this.setValue(this.value + step);
+    const newVal = this.value + step;
+    this.setValue(newVal <= this.maxValue ? newVal : this.maxValue);
   }
 
   private decrement(step: number = this._step): void {
-    this.setValue(this.value - step);
+    const newVal = this.value - step;
+    this.setValue(newVal >= this.minValue ? newVal : this.minValue);
   }
 
   protected setValue(newValue: number): void {
@@ -70,15 +66,11 @@ export abstract class TimeUnit {
       return;
     }
 
-    if (newValue >= this._limit || newValue < 0) {
-      newValue = (newValue + this._limit) % this._limit;
-    }
-
     this._value = newValue;
   }
 
   protected isValidString(valueStr: string): boolean {
     const value = parseInt(valueStr);
-    return !isNaN(value) && value >= 0 && value < this._limit;
+    return !isNaN(value) && value >= this.minValue && value <= this.maxValue;
   }
 }

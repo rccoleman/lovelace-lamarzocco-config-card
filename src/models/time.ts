@@ -16,18 +16,10 @@ export class Time {
   }
 
   minuteStep(direction: Direction): void {
-    if (this._linkValues && this.minute.willOverflow(direction)) {
-      this.hour.stepUpdate(direction, 1);
-    }
-
     this.minute.stepUpdate(direction);
   }
 
   secondStep(direction: Direction): void {
-    if (this._linkValues && this.second.willOverflow(direction)) {
-      this.minute.stepUpdate(direction, 1);
-    }
-
     this.second.stepUpdate(direction);
   }
 

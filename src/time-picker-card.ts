@@ -124,7 +124,6 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       this.days = new Map();
 
       for (day_of_week of DAYS) {
-        // day_of_week = day_of_week.toLowerCase();
         this.days.set(
           day_of_week,
           new Day(
@@ -239,63 +238,89 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     return CARD_SIZE;
   }
 
+  private adjustMinMax(day: Day): void {
+    if (day) {
+      day.time_on.hour.maxValue = day.time_off.hour.value - 1;
+      day.time_off.hour.minValue = day.time_on.hour.value + 1;
+    }
+  }
+
   private onPeriodOnToggle(): void {
     // this.time_on.hour.togglePeriod();
-    this.callHassService();
+    // this.callHassService(event);
   }
 
   private onPeriodOffToggle(): void {
     // this.time_off.hour.togglePeriod();
-    this.callHassService();
+    // this.callHassService(event);
   }
 
   private onHourOnStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_on.hourStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day.time_on.hourStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
   private onMinuteOnStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_on.minuteStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day!.time_on.minuteStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
   private onSecondOnStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_on.secondStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day.time_on.secondStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
   private onHourOffStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_off.hourStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day.time_off.hourStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
   private onMinuteOffStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_off.minuteStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day.time_off.minuteStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
   private onSecondOffStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
-    day!.time_off.secondStep(event.detail.direction);
-    this.callHassService();
+    if (day) {
+      day!.time_off.secondStep(event.detail.direction);
+      this.adjustMinMax(day);
+      this.callHassService(event);
+    }
   }
 
-  private callHassService(): Promise<void> {
+  private callHassService(event: CustomEvent): Promise<void> {
     if (!this.hass) {
       throw new Error('Unable to update datetime');
     }
+    const day = this.days.get(event.detail.dayOfWeek);
 
-    // console.log(
-    //   'Calling service with %s, %s, %s',
-    //   this.days.get(day_of_week.value.toLowerCase(),
-    //   this.time_on.hour.value,
-    //   this.time_off.hour.value
-    // );
+    console.log(
+      'Calling service with %s, %s, %s',
+      day?.day_of_week.toLowerCase(),
+      day?.time_on.hour.value,
+      day?.time_off.hour.value
+    );
 
     return Promise.resolve(undefined);
 
@@ -356,6 +381,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
       .time-picker-row.with-header-name {
         padding: 8px 8px 8px;
+        justify-content: center;
       }
 
       .time-picker-content {

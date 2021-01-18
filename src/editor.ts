@@ -168,13 +168,6 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
                 )}
               </paper-listbox>
             </paper-dropdown-menu>
-            <div>
-              <ha-switch
-                .checked="${this.config.link_values}"
-                @change="${this.onLinkValuesChange}"
-              ></ha-switch>
-              Link Values
-            </div>
           </div>
           <div class="side-by-side">
             <div>
@@ -238,11 +231,6 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
       ...this.config,
       layout: { ...this.config.layout, hour_mode: hourModeLayout },
     };
-    this.dispatch(newConfig);
-  }
-
-  private onLinkValuesChange({ target: { checked } }): void {
-    const newConfig = { ...this.config, link_values: checked };
     this.dispatch(newConfig);
   }
 

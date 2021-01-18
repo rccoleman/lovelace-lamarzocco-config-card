@@ -24,14 +24,12 @@ export class Day {
     this.time_on = new Time(
       new Hour(hour_on, config.hour_step, day_of_week, config.hour_mode),
       new Minute(minute_on, day_of_week, config.minute_step),
-      new Second(second_on, day_of_week, config.second_step),
-      config.link_values
+      new Second(second_on, day_of_week, config.second_step)
     );
     this.time_off = new Time(
       new Hour(hour_off, config.hour_step, day_of_week, config.hour_mode),
       new Minute(minute_off, day_of_week, config.minute_step),
-      new Second(second_off, day_of_week, config.second_step),
-      config.link_values
+      new Second(second_off, day_of_week, config.second_step)
     );
     this.period_on = hour_on >= 12 ? Period.PM : Period.AM;
     this.period_off = hour_off >= 12 ? Period.PM : Period.AM;

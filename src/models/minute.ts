@@ -12,15 +12,6 @@ export class Minute extends TimeUnit {
   maxValue = Minute.VALUE_LIMIT - 1;
 
   constructor(value: number, dayOfWeek: string, step = DEFAULT_MINUTE_STEP) {
-    super(value, step, dayOfWeek, Minute.VALUE_LIMIT);
-  }
-
-  /**
-   * Returns true if the minutes will overflow to a different hour when changed in {@param direction}.
-   * @param direction
-   */
-  willOverflow(direction: Direction): boolean {
-    const newValue = direction === Direction.UP ? this.value + this._step : this.value - this._step;
-    return newValue >= this._limit || newValue < 0;
+    super(value, step, dayOfWeek);
   }
 }
