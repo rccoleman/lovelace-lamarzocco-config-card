@@ -11,8 +11,8 @@ export class Minute extends TimeUnit {
   minValue = 0;
   maxValue = Minute.VALUE_LIMIT - 1;
 
-  constructor(value: number, step = DEFAULT_MINUTE_STEP) {
-    super(value, step, Minute.VALUE_LIMIT);
+  constructor(value: number, dayOfWeek: string, step = DEFAULT_MINUTE_STEP) {
+    super(value, step, dayOfWeek, Minute.VALUE_LIMIT);
   }
 
   /**

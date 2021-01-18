@@ -14,3 +14,5 @@ export const DEFAULT_SECOND_STEP = 5;
 export const DEFAULT_LAYOUT_HOUR_MODE = 'double';
 export const DEFAULT_LAYOUT_ALIGN_CONTROLS = Layout.AlignControls.CENTER;
 export const DEFAULT_LAYOUT_NAME = Layout.Name.HEADER;
+
+export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];

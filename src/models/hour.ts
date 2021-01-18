@@ -8,8 +8,13 @@ import { TimeUnit } from './time-unit';
 export class Hour extends TimeUnit {
   private static readonly VALUE_LIMIT = 24;
 
-  constructor(value: number, step = DEFAULT_HOUR_STEP, private hourMode?: HourMode) {
-    super(value, step, Hour.VALUE_LIMIT);
+  constructor(
+    value: number,
+    step = DEFAULT_HOUR_STEP,
+    dayOfWeek: string,
+    private hourMode?: HourMode
+  ) {
+    super(value, step, dayOfWeek, Hour.VALUE_LIMIT);
   }
 
   get minValue(): number {

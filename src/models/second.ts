@@ -11,8 +11,8 @@ export class Second extends TimeUnit {
   minValue = 0;
   maxValue = Second.VALUE_LIMIT - 1;
 
-  constructor(value: number, step = DEFAULT_SECOND_STEP) {
-    super(value, step, Second.VALUE_LIMIT);
+  constructor(value: number, dayOfWeek: string, step = DEFAULT_SECOND_STEP) {
+    super(value, step, dayOfWeek, Second.VALUE_LIMIT);
   }
 
   /**

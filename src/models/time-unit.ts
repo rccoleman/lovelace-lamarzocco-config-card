@@ -17,12 +17,22 @@ export abstract class TimeUnit {
    * Create a new instance of a TimeUnit
    * @param _value current value
    * @param _step how much to increase / decrease the value when step-changing
+   * @param _dayOfWeek the day of the week associated with this entity
    * @param _limit value upper limit
    */
-  constructor(private _value: number, protected _step: number, protected _limit: number) {}
+  constructor(
+    private _value: number,
+    protected _step: number,
+    protected _dayOfWeek: string,
+    protected _limit: number
+  ) {}
 
   get value(): number {
     return this._value;
+  }
+
+  get dayOfWeek(): string {
+    return this._dayOfWeek;
   }
 
   /**
