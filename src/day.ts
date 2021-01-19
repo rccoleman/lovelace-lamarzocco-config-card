@@ -10,12 +10,14 @@ export class Day {
   public period_on!: Period;
   public period_off!: Period;
   public day_of_week!: string;
+  public enabled!: boolean;
 
   constructor(
     day_of_week: string,
     hour_on: number,
     hour_off: number,
     config: TimePickerCardConfig,
+    enabled: boolean,
     minute_on = 0,
     minute_off = 0,
     second_on = 0,
@@ -34,5 +36,6 @@ export class Day {
     this.period_on = hour_on >= 12 ? Period.PM : Period.AM;
     this.period_off = hour_off >= 12 ? Period.PM : Period.AM;
     this.day_of_week = day_of_week;
+    this.enabled = enabled;
   }
 }

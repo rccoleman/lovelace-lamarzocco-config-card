@@ -110,6 +110,13 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     };
   }
 
+  private get buttonLabelClass(): ClassInfo {
+    return {
+      'time-picker-button-label': true,
+      [`layout-${this.layoutAlign}`]: true,
+    };
+  }
+
   render(): TemplateResult | null {
     if (!this.entity) {
       return Partial.error('Entity not found', this.config);
@@ -124,17 +131,18 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       this.days = new Map();
 
       for (day_of_week of DAYS) {
-        this.days.set(
+        const day = new Day(
           day_of_week,
-          new Day(
-            day_of_week,
-            this.entity!.attributes[day_of_week.toLowerCase() + '_on'],
-            this.entity!.attributes[day_of_week.toLowerCase() + '_off'],
-            this.config
-          )
+          this.entity!.attributes[day_of_week.toLowerCase() + '_on'],
+          this.entity!.attributes[day_of_week.toLowerCase() + '_off'],
+          this.config,
+          this.entity!.attributes[day_of_week.toLowerCase()] === 'Enabled'
         );
+        this.days.set(day_of_week, day);
       }
     }
+
+    for (const day of this.days.values()) this.setButtonColors(day);
 
     return html` ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
       <ha-card class=${classMap(this.rowClass)}>
@@ -143,11 +151,12 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
           this.days.values(),
           (day) => html`
         <div class=${classMap(this.controlClass)}>
-        <div>${day.day_of_week}</div>
+        <button class=${classMap(this.buttonLabelClass)} @click="${(e: CustomEvent) =>
+            this.onEnableDisable(e, day)}}" id=${day.day_of_week}>${day.day_of_week}</button>
         <time-unit
             .unit=${day.time_on.hour}
             @stepChange=${this.onHourOnStepChange}
-            @update=${this.callHassService}
+            @update=${this.callSetOnOffHours}
         ></time-unit>
         ${
           this.config.hide?.minutes === false
@@ -155,7 +164,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
                 <time-unit
                   .unit=${day.time_on.minute}
                   @stepChange=${this.onMinuteOnStepChange}
-                  @update=${this.callHassService}
+                  @update=${this.callSetOnOffHours}
                 ></time-unit>`
             : ''
         }
@@ -165,7 +174,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
                 <time-unit
                   .unit=${day.time_on.second}
                   @stepChange=${this.onSecondOnStepChange}
-                  @update=${this.callHassService}
+                  @update=${this.callSetOnOffHours}
                 ></time-unit>`
             : ''
         }
@@ -181,7 +190,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
         <time-unit
             .unit=${day.time_off.hour}
             @stepChange=${this.onHourOffStepChange}
-            @update=${this.callHassService}
+            @update=${this.callSetOnOffHours}
         ></time-unit>
         ${
           this.config.hide?.minutes === false
@@ -189,7 +198,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
                 <time-unit
                   .unit=${day.time_off.minute}
                   @stepChange=${this.onMinuteOffStepChange}
-                  @update=${this.callHassService}
+                  @update=${this.callSetOnOffHours}
                 ></time-unit>`
             : ''
         }
@@ -199,7 +208,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
                 <time-unit
                   .unit=${day.time_off.second}
                   @stepChange=${this.onSecondOffStepChange}
-                  @update=${this.callHassService}
+                  @update=${this.callSetOnOffHours}
                 ></time-unit>`
             : ''
         }
@@ -238,6 +247,16 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     return CARD_SIZE;
   }
 
+  private setButtonColors(day: Day): void {
+    const root = this.shadowRoot;
+    const button = root!.getElementById(day.day_of_week);
+    if (button) {
+      const color = day.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
+      button.style.color = color;
+      button.style.border = '2px solid ' + color;
+    }
+  }
+
   private adjustMinMax(day: Day): void {
     if (day) {
       day.time_on.hour.maxValue = day.time_off.hour.value - 1;
@@ -255,12 +274,20 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     // this.callHassService(event);
   }
 
+  private onEnableDisable(event: CustomEvent, day: Day): void {
+    event = event;
+    day.enabled = !day.enabled;
+
+    this.setButtonColors(day);
+    this.callEnableDisable(day);
+  }
+
   private onHourOnStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
     if (day) {
       day.time_on.hourStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
@@ -269,7 +296,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (day) {
       day!.time_on.minuteStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
@@ -278,7 +305,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (day) {
       day.time_on.secondStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
@@ -287,7 +314,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (day) {
       day.time_off.hourStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
@@ -296,7 +323,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (day) {
       day.time_off.minuteStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
@@ -305,30 +332,53 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (day) {
       day!.time_off.secondStep(event.detail.direction);
       this.adjustMinMax(day);
-      this.callHassService(event);
+      this.callSetOnOffHours(event);
     }
   }
 
-  private callHassService(event: CustomEvent): Promise<void> {
+  private callSetOnOffHours(event: CustomEvent): Promise<void> {
     if (!this.hass) {
-      throw new Error('Unable to update datetime');
+      throw new Error('Unable to update settings');
     }
     const day = this.days.get(event.detail.dayOfWeek);
 
+    if (!day) return Promise.resolve(undefined);
+
     console.log(
-      'Calling service with %s, %s, %s',
-      day?.day_of_week.toLowerCase(),
-      day?.time_on.hour.value,
-      day?.time_off.hour.value
+      'Calling set_on_off_hours service with %s, %s, %s',
+      day.day_of_week.toLowerCase(),
+      day.time_on.hour.value,
+      day.time_off.hour.value
     );
 
-    return Promise.resolve(undefined);
-
     // return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
-    //   day_of_week: this.day_of_week.value.toLowerCase(),
-    //   hour_on: this.time_on.hour.value,
-    //   hour_off: this.time_off.hour.value,
+    //   day_of_week: day.day_of_week.toLowerCase(),
+    //   hour_on: day.time_on.hour.value,
+    //   hour_off: day.time_off.hour.value,
     // });
+
+    return Promise.resolve(undefined);
+  }
+
+  private callEnableDisable(day: Day): Promise<void> {
+    if (!this.hass) {
+      throw new Error('Unable to update settings');
+    }
+
+    if (!day) return Promise.resolve(undefined);
+
+    console.log(
+      'Calling set_enable_auto_on_off service with %s, %s',
+      day.day_of_week.toLowerCase(),
+      day.enabled
+    );
+
+    // return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
+    //   day_of_week: day.day_of_week.toLowerCase(),
+    //   enable: day.enabled,
+    // });
+
+    return Promise.resolve(undefined);
   }
 
   static get styles(): CSSResult {
@@ -352,7 +402,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       }
 
       .time-picker-header {
-        padding: 4px;
+        padding: 0px;
         color: var(--tpc-text-color);
         background-color: var(--tpc-elements-background-color);
         border-top-left-radius: var(--tpc-border-radius);
@@ -365,7 +415,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
         display: flex;
         flex-direction: row;
         align-items: center;
-        padding: 4px;
+        padding: 2px;
       }
 
       .time-picker-control {
@@ -375,12 +425,20 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
         padding: 4px;
       }
 
+      .time-picker-button-label {
+        background-color: var(--primary-background-color);
+        color: var(--tpc-text-color);
+        border: 2px solid var(--success-color);
+        font-weight: bolder;
+      }
+
       .time-picker-row.embedded {
-        padding: 0;
+        padding: 2;
+        justify-content: center;
       }
 
       .time-picker-row.with-header-name {
-        padding: 8px 8px 8px;
+        padding: 6px 6px 6px;
         justify-content: center;
       }
 

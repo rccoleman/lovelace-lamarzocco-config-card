@@ -1,6 +1,5 @@
 import { DEFAULT_MINUTE_STEP } from '../const';
 import { TimeUnit } from './time-unit';
-import { Direction } from '../types';
 
 /**
  * * Represents the minute value of a datetime.

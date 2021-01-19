@@ -69,12 +69,12 @@ export class TimeUnitComponent extends LitElement {
         display: flex;
         flex-direction: column;
         align-items: center;
-        padding: 0 8px;
+        padding: 0 2px;
       }
 
       .time-picker-icon {
         width: 30px;
-        padding: 8px;
+        padding: 2px;
         text-align: center;
         cursor: pointer;
         color: var(--tpc-icon-color);
@@ -82,10 +82,9 @@ export class TimeUnitComponent extends LitElement {
 
       .time-input {
         width: 30px;
-        padding: 8px 8px 6px;
-        background: var(--tpc-elements-background-color);
-        border: 0;
-        border-bottom: 2px solid var(--tpc-elements-background-color);
+        padding: 4px 4px 4px;
+        background: var(--primary-background-color);
+        border: 2px solid var(--tpc-elements-background-color);
         color: var(--tpc-text-color, #fff);
         text-align: center;
         font-size: 1em;
