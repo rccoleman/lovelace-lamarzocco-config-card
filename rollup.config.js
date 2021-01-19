@@ -18,11 +18,11 @@ const serveOptions = {
 };
 
 export default {
-  input: 'src/time-picker-card.ts',
+  input: 'src/value-range-card.ts',
   output: {
     dir: './dist',
     format: 'es',
-    sourcemap: true
+    sourcemap: true,
   },
   plugins: [
     nodeResolve(),

@@ -11,37 +11,31 @@ import {
 } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
-import './components/time-unit.component';
-import {
-  CARD_SIZE,
-  CARD_VERSION,
-  DEFAULT_LAYOUT_ALIGN_CONTROLS,
-  ENTITY_DOMAIN,
-  SERVICE_DOMAIN,
-  DAYS,
-} from './const';
-import './editor';
-import { Day } from './day';
+import './components/value-unit.component';
+import { CARD_SIZE, CARD_VERSION, DEFAULT_LAYOUT_ALIGN_CONTROLS } from './const';
+
+import { ENTITY_DOMAIN, SERVICE_DOMAIN, DAYS, Value } from './value';
+
 import { Partial } from './partials';
-import { Layout, TimePickerCardConfig } from './types';
+import { Layout, ValueRangeCardConfig } from './types';
 
 console.info(
-  `%c  TIME-PICKER-CARD  \n%c  Version ${CARD_VERSION}    `,
+  `%c  value-range-CARD  \n%c  Version ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray'
 );
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'time-picker-card',
-  name: 'Time Picker Card',
-  description: 'A Time Picker card for setting the time value of Input Datetime entities.',
+  type: 'value-range-card',
+  name: 'Value Range Card',
+  description: 'A Value Range card for assigning multiple sets of upper/lower values.',
 });
-@customElement('time-picker-card')
-export class TimePickerCard extends LitElement implements LovelaceCard {
+@customElement('value-range-card')
+export class ValueRangeCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
-  @property({ attribute: false }) private config!: TimePickerCardConfig;
-  private days!: Map<string, Day>;
+  @property({ attribute: false }) private config!: ValueRangeCardConfig;
+  private valueMap!: Map<string, Value>;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -88,7 +82,7 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
   private get rowClass(): ClassInfo {
     return {
-      'time-picker-row': true,
+      'value-range-row': true,
       'with-header-name': this.hasNameInHeader,
       embedded: this.isEmbedded,
     };
@@ -96,21 +90,21 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
   private get contentClass(): ClassInfo {
     return {
-      'time-picker-control': true,
+      'value-range-control': true,
       [`layout-${this.layoutAlign}`]: true,
     };
   }
 
   private get controlClass(): ClassInfo {
     return {
-      'time-picker-control': true,
+      'value-range-control': true,
       [`layout-${this.layoutAlign}`]: true,
     };
   }
 
   private get buttonLabelClass(): ClassInfo {
     return {
-      'time-picker-button-label': true,
+      'value-range-button-label': true,
       [`layout-${this.layoutAlign}`]: true,
     };
   }
@@ -124,50 +118,59 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
     }
 
-    if (typeof this.days === 'undefined') {
-      let day_of_week: string;
-      this.days = new Map();
+    if (typeof this.valueMap === 'undefined') {
+      this.valueMap = new Map();
 
-      for (day_of_week of DAYS) {
-        const day = new Day(
-          day_of_week,
-          this.entity!.attributes[day_of_week.toLowerCase() + '_on'],
-          this.entity!.attributes[day_of_week.toLowerCase() + '_off'],
+      for (const label of DAYS) {
+        const value = new Value(
+          label,
+          this.entity!.attributes[label.toLowerCase() + '_on'],
+          this.entity!.attributes[label.toLowerCase() + '_off'],
           this.config,
-          this.entity!.attributes[day_of_week.toLowerCase()] === 'Enabled'
+          this.entity!.attributes[label.toLowerCase()] === 'Enabled'
         );
-        this.days.set(day_of_week, day);
+        this.valueMap.set(label, value);
       }
     }
 
-    for (const day of this.days.values()) this.setButtonColors(day);
+    for (const value of this.valueMap.values()) {
+      // Update values
+      const index = value.label.toLowerCase();
+      const attr = this.entity!.attributes;
+
+      value.value_start.value = attr[index + '_on'];
+      value.value_end.value = attr[index + '_off'];
+      value.enabled = attr[index] === 'Enabled';
+
+      this.setButtonColors(value);
+    }
 
     return html` ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
       <ha-card class=${classMap(this.rowClass)}>
         ${this.hasNameInside ? Partial.nestedName(this.name!, this.entity) : ''}
         ${repeat(
-          this.days.values(),
-          (day) => html`
+          this.valueMap.values(),
+          (value) => html`
         <div class=${classMap(this.controlClass)}>
         <button class=${classMap(this.buttonLabelClass)} @click="${(e: CustomEvent) =>
-            this.onEnableDisable(e, day)}}" id=${day.day_of_week}>${day.day_of_week}</button>
-        <time-unit
-            .unit=${day.time_on.hour}
+            this.onEnableDisable(e, value)}}" id=${value.label}>${value.label}</button>
+        <value-unit
+            .unit=${value.value_start.value}
             @stepChange=${this.onHourOnStepChange}
             @update=${this.callSetOnOffHours}
-        ></time-unit>
-        <time-unit
-            .unit=${day.time_off.hour}
+        ></value-unit>
+        <value-unit
+            .unit=${value.value_end.value}
             @stepChange=${this.onHourOffStepChange}
             @update=${this.callSetOnOffHours}
-        ></time-unit>
+        ></value-unit>
         </div>
     </div></div>`
         )}
       </ha-card>`;
   }
 
-  setConfig(config: TimePickerCardConfig): void {
+  setConfig(config: ValueRangeCardConfig): void {
     if (!config) {
       throw new Error('Invalid configuration');
     }
@@ -187,45 +190,45 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     return CARD_SIZE;
   }
 
-  private setButtonColors(day: Day): void {
+  private setButtonColors(value: Value): void {
     const root = this.shadowRoot;
-    const button = root!.getElementById(day.day_of_week);
+    const button = root!.getElementById(value.label);
     if (button) {
-      const color = day.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
+      const color = value.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
       button.style.color = color;
       button.style.border = '2px solid ' + color;
     }
   }
 
-  private adjustMinMax(day: Day): void {
-    if (day) {
-      day.time_on.hour.maxValue = day.time_off.hour.value - 1;
-      day.time_off.hour.minValue = day.time_on.hour.value + 1;
+  private adjustMinMax(value: Value): void {
+    if (value) {
+      value.value_start.maxValue = value.value_start.value - 1;
+      value.value_end.minValue = value.value_end.value + 1;
     }
   }
 
-  private onEnableDisable(event: CustomEvent, day: Day): void {
+  private onEnableDisable(event: CustomEvent, value: Value): void {
     event = event;
-    day.enabled = !day.enabled;
+    value.enabled = !value.enabled;
 
-    this.setButtonColors(day);
-    this.callEnableDisable(day);
+    this.setButtonColors(value);
+    this.callEnableDisable(value);
   }
 
   private onHourOnStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day.time_on.hourStep(event.detail.direction);
-      this.adjustMinMax(day);
+    const value = this.valueMap.get(event.detail.dayOfWeek);
+    if (value) {
+      value.value_start.stepUpdate(event.detail.direction);
+      this.adjustMinMax(value);
       this.callSetOnOffHours(event);
     }
   }
 
   private onHourOffStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day.time_off.hourStep(event.detail.direction);
-      this.adjustMinMax(day);
+    const value = this.valueMap.get(event.detail.dayOfWeek);
+    if (value) {
+      value.value_start.stepUpdate(event.detail.direction);
+      this.adjustMinMax(value);
       this.callSetOnOffHours(event);
     }
   }
@@ -234,42 +237,42 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
-    const day = this.days.get(event.detail.dayOfWeek);
+    const value = this.valueMap.get(event.detail.dayOfWeek);
 
-    if (!day) return Promise.resolve(undefined);
+    if (!value) return Promise.resolve(undefined);
 
     console.log(
       'Calling set_on_off_hours service with %s, %s, %s',
-      day.day_of_week.toLowerCase(),
-      day.time_on.hour.value,
-      day.time_off.hour.value
+      value.label.toLowerCase(),
+      value.value_start.value,
+      value.value_end.value
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
-      day_of_week: day.day_of_week.toLowerCase(),
-      hour_on: day.time_on.hour.value,
-      hour_off: day.time_off.hour.value,
+      day_of_week: value.label.toLowerCase(),
+      hour_on: value.value_start.value,
+      hour_off: value.value_end.value,
     });
 
     // return Promise.resolve(undefined);
   }
 
-  private callEnableDisable(day: Day): Promise<void> {
+  private callEnableDisable(value: Value): Promise<void> {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
 
-    if (!day) return Promise.resolve(undefined);
+    if (!value) return Promise.resolve(undefined);
 
     console.log(
       'Calling set_enable_auto_on_off service with %s, %s',
-      day.day_of_week.toLowerCase(),
-      day.enabled
+      value.label.toLowerCase(),
+      value.enabled
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
-      day_of_week: day.day_of_week.toLowerCase(),
-      enable: day.enabled,
+      day_of_week: value.label.toLowerCase(),
+      enable: value.enabled,
     });
 
     // return Promise.resolve(undefined);
@@ -279,23 +282,23 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     return css`
       :host {
         --tpc-elements-background-color: var(
-          --time-picker-elements-background-color,
+          --value-range-elements-background-color,
           var(--primary-color)
         );
 
-        --tpc-icon-color: var(--time-picker-icon-color, var(--primary-text-color));
-        --tpc-text-color: var(--time-picker-text-color, #fff);
-        --tpc-accent-color: var(--time-picker-accent-color, var(--primary-color));
-        --tpc-off-color: var(--time-picker-off-color, var(--disabled-text-color));
+        --tpc-icon-color: var(--value-range-icon-color, var(--primary-text-color));
+        --tpc-text-color: var(--value-range-text-color, #fff);
+        --tpc-accent-color: var(--value-range-accent-color, var(--primary-color));
+        --tpc-off-color: var(--value-range-off-color, var(--disabled-text-color));
 
-        --tpc-border-radius: var(--time-picker-border-radius, var(--ha-card-border-radius, 4px));
+        --tpc-border-radius: var(--value-range-border-radius, var(--ha-card-border-radius, 4px));
       }
 
       ha-card.embedded {
         box-shadow: none;
       }
 
-      .time-picker-header {
+      .value-range-header {
         padding: 0px;
         color: var(--tpc-text-color);
         background-color: var(--tpc-elements-background-color);
@@ -305,53 +308,53 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
         text-align: center;
       }
 
-      .time-picker-row {
+      .value-range-row {
         display: flex;
         flex-direction: row;
         align-items: center;
         padding: 2px;
       }
 
-      .time-picker-control {
+      .value-range-control {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 4px;
       }
 
-      .time-picker-button-label {
+      .value-range-button-label {
         background-color: var(--primary-background-color);
         color: var(--tpc-text-color);
         border: 2px solid var(--success-color);
         font-weight: bolder;
       }
 
-      .time-picker-row.embedded {
+      .value-range-row.embedded {
         padding: 2;
         justify-content: center;
       }
 
-      .time-picker-row.with-header-name {
+      .value-range-row.with-header-name {
         padding: 6px 6px 6px;
         justify-content: center;
       }
 
-      .time-picker-content {
+      .value-range-content {
         display: flex;
         flex-direction: row;
         align-items: center;
         flex: 1 0 auto;
       }
 
-      .time-picker-content.layout-left {
+      .value-range-content.layout-left {
         justify-content: flex-start;
       }
 
-      .time-picker-content.layout-center {
+      .value-range-content.layout-center {
         justify-content: center;
       }
 
-      .time-picker-content.layout-right {
+      .value-range-content.layout-right {
         justify-content: flex-end;
       }
 
@@ -364,15 +367,15 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
   static getStubConfig(
     _: HomeAssistant,
     entities: Array<string>
-  ): Omit<TimePickerCardConfig, 'type'> {
-    const datetimeEntity = entities.find((entityId) => computeDomain(entityId) === ENTITY_DOMAIN);
+  ): Omit<ValueRangeCardConfig, 'type'> {
+    const cardEntity = entities.find((entityId) => computeDomain(entityId) === ENTITY_DOMAIN);
 
     return {
-      entity: datetimeEntity || 'switch.buzz_auto_on_off',
+      entity: cardEntity || 'switch.buzz_auto_on_off',
     };
   }
 
   static getConfigElement(): LovelaceCard {
-    return document.createElement('time-picker-card-editor') as LovelaceCard;
+    return document.createElement('value-range-card-editor') as LovelaceCard;
   }
 }

@@ -1,12 +1,12 @@
 import { LovelaceCardConfig } from 'custom-card-helpers';
 
-export interface TimePickerCardConfig extends LovelaceCardConfig {
+export interface ValueRangeCardConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
-  layout?: TimePickerLayoutConfig;
-  hide?: TimePickerHideConfig;
+  layout?: ValueRangeLayoutConfig;
+  hide?: ValueRangeHideConfig;
 }
-export interface TimePickerLayoutConfig {
+export interface ValueRangeLayoutConfig {
   align_controls?: Layout.AlignControls;
   name?: Layout.Name;
   embedded?: boolean;
@@ -27,16 +27,11 @@ export namespace Layout {
   }
 }
 
-export interface TimePickerHideConfig {
+export interface ValueRangeHideConfig {
   name?: boolean;
 }
 
 export enum Direction {
   UP = 'up',
   DOWN = 'down',
-}
-
-export enum Period {
-  AM = 'AM',
-  PM = 'PM',
 }

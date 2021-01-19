@@ -7,25 +7,25 @@ import {
   property,
   TemplateResult,
 } from 'lit-element';
-import { TimeUnit } from '../models/time-unit';
+import { ValueUnit } from '../models/value-unit';
 import { Direction } from '../types';
 
 /**
- * Renders an AM/PM picker.
+ * Renders a single value selector
  */
-@customElement('time-unit')
-export class TimeUnitComponent extends LitElement {
+@customElement('value-unit')
+export class ValueUnitComponent extends LitElement {
   static readonly EVENT_UPDATE = 'update';
   static readonly EVENT_STEP_CHANGE = 'stepChange';
 
-  @property({ attribute: false }) private unit!: TimeUnit;
+  @property({ attribute: false }) private unit!: ValueUnit;
 
   render(): TemplateResult {
     return html`
-      <div class="time-unit">
+      <div class="value-unit">
         ${this.renderStepChanger(Direction.UP)}
         <input
-          class="time-input"
+          class="value-input"
           type="number"
           placeholder="MM"
           min=${this.unit.minValue}
@@ -39,16 +39,16 @@ export class TimeUnitComponent extends LitElement {
   }
 
   onInputChange({ target: { value } }: { target: HTMLInputElement }): void {
-    const dayOfWeek = this.unit.dayOfWeek;
+    const label = this.unit.label;
     this.unit.setStringValue(value);
-    const event = new CustomEvent(TimeUnitComponent.EVENT_UPDATE, { detail: { dayOfWeek } });
+    const event = new CustomEvent(ValueUnitComponent.EVENT_UPDATE, { detail: { label } });
     this.dispatchEvent(event);
   }
 
   onStepChangerClick(direction: Direction): void {
-    const dayOfWeek = this.unit.dayOfWeek;
-    const event = new CustomEvent(TimeUnitComponent.EVENT_STEP_CHANGE, {
-      detail: { direction, dayOfWeek },
+    const label = this.unit.label;
+    const event = new CustomEvent(ValueUnitComponent.EVENT_STEP_CHANGE, {
+      detail: { direction, label },
     });
     this.dispatchEvent(event);
     this.requestUpdate();
@@ -56,7 +56,7 @@ export class TimeUnitComponent extends LitElement {
 
   private renderStepChanger(direction: Direction): TemplateResult {
     return html`
-      <div class="time-picker-icon" @click=${() => this.onStepChangerClick(direction)}>
+      <div class="value-range-icon" @click=${() => this.onStepChangerClick(direction)}>
         <ha-icon .icon="hass:chevron-${direction}"></ha-icon>
         <mwc-ripple id="ripple"></mwc-ripple>
       </div>
@@ -65,14 +65,14 @@ export class TimeUnitComponent extends LitElement {
 
   static get styles(): CSSResult {
     return css`
-      .time-unit {
+      .value-unit {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 0 2px;
       }
 
-      .time-picker-icon {
+      .value-range-icon {
         width: 30px;
         padding: 2px;
         text-align: center;
@@ -80,7 +80,7 @@ export class TimeUnitComponent extends LitElement {
         color: var(--tpc-icon-color);
       }
 
-      .time-input {
+      .value-input {
         width: 30px;
         padding: 4px 4px 4px;
         background: var(--primary-background-color);
@@ -93,19 +93,19 @@ export class TimeUnitComponent extends LitElement {
         transition: border-color 0.2s ease-in-out;
       }
 
-      .time-input:focus {
+      .value-input:focus {
         outline: none;
       }
 
-      .time-input:invalid {
+      .value-input:invalid {
         box-shadow: none;
         outline: none;
         border: 0;
         border-bottom: 2px solid red;
       }
 
-      .time-input::-webkit-inner-spin-button,
-      .time-input::-webkit-outer-spin-button {
+      .value-input::-webkit-inner-spin-button,
+      .value-input::-webkit-outer-spin-button {
         -webkit-appearance: none;
         margin: 0;
       }

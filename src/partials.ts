@@ -1,10 +1,10 @@
 import { html, TemplateResult } from 'lit-element';
-import { TimePickerCardConfig } from './types';
+import { ValueRangeCardConfig } from './types';
 import { LovelaceCard } from 'custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 
 export class Partial {
-  static error(error: string, origConfig: TimePickerCardConfig): TemplateResult {
+  static error(error: string, origConfig: ValueRangeCardConfig): TemplateResult {
     const errorCard = document.createElement('hui-error-card') as LovelaceCard;
     errorCard.setConfig({
       type: 'error',
@@ -16,7 +16,7 @@ export class Partial {
   }
 
   static headerName(title: string): TemplateResult {
-    return html`<div class="time-picker-header">${title}</div>`;
+    return html`<div class="value-range-header">${title}</div>`;
   }
 
   static nestedName(name: string, entity: HassEntity): TemplateResult {

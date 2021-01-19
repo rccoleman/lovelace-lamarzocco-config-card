@@ -3,29 +3,24 @@ import { Direction } from '../types';
 /**
  * Represents a single value.
  */
-export abstract class TimeUnit {
+export class ValueUnit {
   /**
    * The min allowed UI value for this instance.
    */
-  abstract minValue: number;
+  public minValue: number;
   /**
    * The max allowed value for this instance.
    */
-  abstract maxValue: number;
+  public maxValue: number;
 
   /**
-   * Create a new instance of a TimeUnit
-   * @param _value current value
-   * @param _dayOfWeek the day of the week associated with this entity
+   * Create a new instance of a ValueUnit
+   * @param value current value
+   * @param label the day of the week associated with this entity
    */
-  constructor(private _value: number, protected _dayOfWeek: string) {}
-
-  get value(): number {
-    return this._value;
-  }
-
-  get dayOfWeek(): string {
-    return this._dayOfWeek;
+  constructor(public value: number, public label: string) {
+    this.minValue = 0;
+    this.maxValue = 0;
   }
 
   /**
@@ -65,7 +60,7 @@ export abstract class TimeUnit {
       return;
     }
 
-    this._value = newValue;
+    this.value = newValue;
   }
 
   protected isValidString(valueStr: string): boolean {
