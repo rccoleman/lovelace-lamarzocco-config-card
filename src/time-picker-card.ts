@@ -204,16 +204,6 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private onPeriodOnToggle(): void {
-    // this.time_on.hour.togglePeriod();
-    // this.callHassService(event);
-  }
-
-  private onPeriodOffToggle(): void {
-    // this.time_off.hour.togglePeriod();
-    // this.callHassService(event);
-  }
-
   private onEnableDisable(event: CustomEvent, day: Day): void {
     event = event;
     day.enabled = !day.enabled;
@@ -255,13 +245,13 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       day.time_off.hour.value
     );
 
-    // return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
-    //   day_of_week: day.day_of_week.toLowerCase(),
-    //   hour_on: day.time_on.hour.value,
-    //   hour_off: day.time_off.hour.value,
-    // });
+    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
+      day_of_week: day.day_of_week.toLowerCase(),
+      hour_on: day.time_on.hour.value,
+      hour_off: day.time_off.hour.value,
+    });
 
-    return Promise.resolve(undefined);
+    // return Promise.resolve(undefined);
   }
 
   private callEnableDisable(day: Day): Promise<void> {
@@ -277,12 +267,12 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
       day.enabled
     );
 
-    // return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
-    //   day_of_week: day.day_of_week.toLowerCase(),
-    //   enable: day.enabled,
-    // });
+    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
+      day_of_week: day.day_of_week.toLowerCase(),
+      enable: day.enabled,
+    });
 
-    return Promise.resolve(undefined);
+    // return Promise.resolve(undefined);
   }
 
   static get styles(): CSSResult {
