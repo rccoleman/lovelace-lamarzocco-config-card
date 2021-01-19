@@ -1,7 +1,7 @@
 import { Direction } from '../types';
 
 /**
- * Represents a single unit of a datetime oobject - e.g. hours or minutes.
+ * Represents a single value.
  */
 export abstract class TimeUnit {
   /**
@@ -16,10 +16,9 @@ export abstract class TimeUnit {
   /**
    * Create a new instance of a TimeUnit
    * @param _value current value
-   * @param _step how much to increase / decrease the value when step-changing
    * @param _dayOfWeek the day of the week associated with this entity
    */
-  constructor(private _value: number, protected _step: number, protected _dayOfWeek: string) {}
+  constructor(private _value: number, protected _dayOfWeek: string) {}
 
   get value(): number {
     return this._value;
@@ -40,24 +39,24 @@ export abstract class TimeUnit {
   }
 
   /**
-   * Updates the value in {@param direction} by the step size specified in the constructoor.
+   * Updates the value in {@param direction}.
    * @param direction
    */
-  stepUpdate(direction: Direction, step: number = this._step): void {
-    direction === Direction.UP ? this.increment(step) : this.decrement(step);
+  stepUpdate(direction: Direction): void {
+    direction === Direction.UP ? this.increment() : this.decrement();
   }
 
   toString(): string {
     return this.value < 10 ? `0${this.value}` : this.value.toString();
   }
 
-  private increment(step: number = this._step): void {
-    const newVal = this.value + step;
+  private increment(): void {
+    const newVal = this.value + 1;
     this.setValue(newVal <= this.maxValue ? newVal : this.maxValue);
   }
 
-  private decrement(step: number = this._step): void {
-    const newVal = this.value - step;
+  private decrement(): void {
+    const newVal = this.value - 1;
     this.setValue(newVal >= this.minValue ? newVal : this.minValue);
   }
 

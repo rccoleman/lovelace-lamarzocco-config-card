@@ -3,20 +3,12 @@ import { LovelaceCardConfig } from 'custom-card-helpers';
 export interface TimePickerCardConfig extends LovelaceCardConfig {
   entity: string;
   name?: string;
-  hour_mode?: HourMode;
-  hour_step?: number;
-  minute_step?: number;
-  second_step?: number;
   layout?: TimePickerLayoutConfig;
   hide?: TimePickerHideConfig;
 }
-
-export type HourMode = 12 | 24 | undefined;
-
 export interface TimePickerLayoutConfig {
   align_controls?: Layout.AlignControls;
   name?: Layout.Name;
-  hour_mode?: Layout.HourMode;
   embedded?: boolean;
 }
 
@@ -37,8 +29,6 @@ export namespace Layout {
 
 export interface TimePickerHideConfig {
   name?: boolean;
-  minutes?: boolean;
-  seconds?: boolean;
 }
 
 export enum Direction {

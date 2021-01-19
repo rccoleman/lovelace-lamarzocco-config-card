@@ -2,3 +2,4 @@ node_modules/
 dist/
 copy
 .vscode/settings.json
+src/test.txt

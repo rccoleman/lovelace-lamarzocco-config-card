@@ -1,7 +1,5 @@
 import { Period, TimePickerCardConfig } from './types';
 import { Hour } from './models/hour';
-import { Minute } from './models/minute';
-import { Second } from './models/second';
 import { Time } from './models/time';
 
 export class Day {
@@ -17,24 +15,11 @@ export class Day {
     hour_on: number,
     hour_off: number,
     config: TimePickerCardConfig,
-    enabled: boolean,
-    minute_on = 0,
-    minute_off = 0,
-    second_on = 0,
-    second_off = 0
+    enabled: boolean
   ) {
-    this.time_on = new Time(
-      new Hour(hour_on, config.hour_step, day_of_week, config.hour_mode),
-      new Minute(minute_on, day_of_week, config.minute_step),
-      new Second(second_on, day_of_week, config.second_step)
-    );
-    this.time_off = new Time(
-      new Hour(hour_off, config.hour_step, day_of_week, config.hour_mode),
-      new Minute(minute_off, day_of_week, config.minute_step),
-      new Second(second_off, day_of_week, config.second_step)
-    );
-    this.period_on = hour_on >= 12 ? Period.PM : Period.AM;
-    this.period_off = hour_off >= 12 ? Period.PM : Period.AM;
+    config = config;
+    this.time_on = new Time(new Hour(hour_on, day_of_week));
+    this.time_off = new Time(new Hour(hour_off, day_of_week));
     this.day_of_week = day_of_week;
     this.enabled = enabled;
   }

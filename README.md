@@ -98,16 +98,13 @@ layout:
 
 ## Options
 
-| Name        | Type         | Requirement  | Description                                                                                               | Default                  |
-| ----------- | ------------ | ------------ | --------------------------------------------------------------------------------------------------------- | ------------------------ |
-| type        | string       | **Required** | `custom:time-picker-card`                                                                                 |                          |
-| entity      | string       | **Required** | [Input Datetime](https://www.home-assistant.io/integrations/input_datetime/) entity with `has_time: true` |                          |
-| name        | string       | **Optional** | Card name                                                                                                 | Entity's `friendly_name` |
-| hour_mode   | `12` or `24` | **Optional** | Hour format. If `12`, card will show AM/PM picker                                                         | `24`                     |
-| hour_step   | number       | **Optional** | Hour change when clicking arrows                                                                          | `1`                      |
-| minute_step | number       | **Optional** | Minute change when clicking arrows                                                                        | `5`                      |
-| layout      | object       | **Optional** | Card Layout configuration                                                                                 | `none`                   |
-| hide        | object       | **Optional** | Hide object                                                                                               | `none`                   |
+| Name   | Type   | Requirement  | Description                                                                                               | Default                  |
+| ------ | ------ | ------------ | --------------------------------------------------------------------------------------------------------- | ------------------------ |
+| type   | string | **Required** | `custom:time-picker-card`                                                                                 |                          |
+| entity | string | **Required** | [Input Datetime](https://www.home-assistant.io/integrations/input_datetime/) entity with `has_time: true` |                          |
+| name   | string | **Optional** | Card name                                                                                                 | Entity's `friendly_name` |
+| layout | object | **Optional** | Card Layout configuration                                                                                 | `none`                   |
+| hide   | object | **Optional** | Hide object                                                                                               | `none`                   |
 
 ### Layout Object
 
@@ -120,10 +117,9 @@ layout:
 
 ### Hide Object
 
-| Name    | Type    | Requirement  | Description         | Default |
-| ------- | ------- | ------------ | ------------------- | ------- |
-| name    | boolean | **Optional** | Hides the card name | `false` |
-| seconds | boolean | **Optional** | Hides seconds input | `true`  |
+| Name | Type    | Requirement  | Description         | Default |
+| ---- | ------- | ------------ | ------------------- | ------- |
+| name | boolean | **Optional** | Hides the card name | `false` |
 
 ### Theme Variables
 

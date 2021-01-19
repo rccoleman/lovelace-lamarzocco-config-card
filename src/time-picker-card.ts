@@ -11,13 +11,11 @@ import {
 } from 'lit-element';
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
-import './components/time-period.component';
 import './components/time-unit.component';
 import {
   CARD_SIZE,
   CARD_VERSION,
   DEFAULT_LAYOUT_ALIGN_CONTROLS,
-  DEFAULT_LAYOUT_HOUR_MODE,
   ENTITY_DOMAIN,
   SERVICE_DOMAIN,
   DAYS,
@@ -158,69 +156,11 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
             @stepChange=${this.onHourOnStepChange}
             @update=${this.callSetOnOffHours}
         ></time-unit>
-        ${
-          this.config.hide?.minutes === false
-            ? html`<div class="time-separator">:</div>
-                <time-unit
-                  .unit=${day.time_on.minute}
-                  @stepChange=${this.onMinuteOnStepChange}
-                  @update=${this.callSetOnOffHours}
-                ></time-unit>`
-            : ''
-        }
-        ${
-          this.config.hide?.seconds === false
-            ? html`<div class="time-separator">:</div>
-                <time-unit
-                  .unit=${day.time_on.second}
-                  @stepChange=${this.onSecondOnStepChange}
-                  @update=${this.callSetOnOffHours}
-                ></time-unit>`
-            : ''
-        }
-        ${
-          this.shouldShowPeriod
-            ? html`<time-period
-                .period=${day.period_on}
-                .mode=${this.config.layout?.hour_mode ?? DEFAULT_LAYOUT_HOUR_MODE}
-                @toggle=${this.onPeriodOnToggle}
-              ></time-period>`
-            : ''
-        }
         <time-unit
             .unit=${day.time_off.hour}
             @stepChange=${this.onHourOffStepChange}
             @update=${this.callSetOnOffHours}
         ></time-unit>
-        ${
-          this.config.hide?.minutes === false
-            ? html`<div class="time-separator">:</div>
-                <time-unit
-                  .unit=${day.time_off.minute}
-                  @stepChange=${this.onMinuteOffStepChange}
-                  @update=${this.callSetOnOffHours}
-                ></time-unit>`
-            : ''
-        }
-        ${
-          this.config.hide?.seconds === false
-            ? html`<div class="time-separator">:</div>
-                <time-unit
-                  .unit=${day.time_off.second}
-                  @stepChange=${this.onSecondOffStepChange}
-                  @update=${this.callSetOnOffHours}
-                ></time-unit>`
-            : ''
-        }
-        ${
-          this.shouldShowPeriod
-            ? html`<time-period
-                .period=${day.period_off}
-                .mode=${this.config.layout?.hour_mode ?? DEFAULT_LAYOUT_HOUR_MODE}
-                @toggle=${this.onPeriodOffToggle}
-              ></time-period>`
-            : ''
-        }
         </div>
     </div></div>`
         )}
@@ -291,46 +231,10 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private onMinuteOnStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day!.time_on.minuteStep(event.detail.direction);
-      this.adjustMinMax(day);
-      this.callSetOnOffHours(event);
-    }
-  }
-
-  private onSecondOnStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day.time_on.secondStep(event.detail.direction);
-      this.adjustMinMax(day);
-      this.callSetOnOffHours(event);
-    }
-  }
-
   private onHourOffStepChange(event: CustomEvent): void {
     const day = this.days.get(event.detail.dayOfWeek);
     if (day) {
       day.time_off.hourStep(event.detail.direction);
-      this.adjustMinMax(day);
-      this.callSetOnOffHours(event);
-    }
-  }
-
-  private onMinuteOffStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day.time_off.minuteStep(event.detail.direction);
-      this.adjustMinMax(day);
-      this.callSetOnOffHours(event);
-    }
-  }
-
-  private onSecondOffStepChange(event: CustomEvent): void {
-    const day = this.days.get(event.detail.dayOfWeek);
-    if (day) {
-      day!.time_off.secondStep(event.detail.direction);
       this.adjustMinMax(day);
       this.callSetOnOffHours(event);
     }
@@ -475,9 +379,6 @@ export class TimePickerCard extends LitElement implements LovelaceCard {
 
     return {
       entity: datetimeEntity || 'switch.buzz_auto_on_off',
-      hour_mode: 24,
-      hour_step: 1,
-      minute_step: 5,
     };
   }
 

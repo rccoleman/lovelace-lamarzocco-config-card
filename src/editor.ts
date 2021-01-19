@@ -9,24 +9,11 @@ import {
   property,
   TemplateResult,
 } from 'lit-element';
-import {
-  DEFAULT_HOUR_STEP,
-  DEFAULT_MINUTE_STEP,
-  ENTITY_DOMAIN,
-  DEFAULT_LAYOUT_ALIGN_CONTROLS,
-  DEFAULT_LAYOUT_NAME,
-  DEFAULT_SECOND_STEP,
-} from './const';
-import { TimePickerCardConfig, Layout, HourMode } from './types';
+import { ENTITY_DOMAIN, DEFAULT_LAYOUT_ALIGN_CONTROLS, DEFAULT_LAYOUT_NAME } from './const';
+import { TimePickerCardConfig, Layout } from './types';
 
 @customElement('time-picker-card-editor')
 export class TimePickerCardEditor extends LitElement implements LovelaceCardEditor {
-  private static readonly NUMBER_PROPERTIES = [
-    'hour_step',
-    'minute_step',
-    'second_step',
-    'hour_mode',
-  ];
   private static readonly CONFIG_CHANGED_EVENT = 'config-changed';
 
   @property({ type: Object }) hass!: HomeAssistant;
@@ -90,67 +77,6 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
           </paper-listbox>
         </paper-dropdown-menu>
       </div>
-      <div class="side-by-side">
-        <paper-input
-          type="number"
-          label="Hour Step (Optional)"
-          .configValue=${'hour_step'}
-          .value=${this.config.hour_step || DEFAULT_HOUR_STEP}
-          @value-changed=${this.onValueChange}
-        ></paper-input>
-        <div class="side-by-side">
-          <div>
-            <ha-switch
-              style="margin-left: 10px"
-              .checked="${this.config.hide?.minutes === false}"
-              @change="${this.onHideMinutesChange}"
-            ></ha-switch>
-            Show minutes?
-          </div>
-          <div>
-            <paper-input
-              type="number"
-              label="Minute Step (Optional)"
-              .configValue=${'minute_step'}
-              .value=${this.config.minute_step || DEFAULT_MINUTE_STEP}
-              @value-changed=${this.onValueChange}
-            ></paper-input>
-          </div>
-          <div class="side-by-side">
-            <div>
-              <ha-switch
-                style="margin-left: 10px"
-                .checked="${this.config.hide?.seconds === false}"
-                @change="${this.onHideSecondsChange}"
-              ></ha-switch>
-              Show seconds?
-            </div>
-            <paper-input
-              type="number"
-              label="Second Step (Optional)"
-              .configValue=${'second_step'}
-              .value=${this.config.second_step || DEFAULT_SECOND_STEP}
-              @value-changed=${this.onValueChange}
-            ></paper-input>
-          </div>
-          <div class="side-by-side">
-            <div>
-              <ha-switch
-                .checked="${this.config.hour_mode === 12}"
-                @change="${this.onHourModeChange}"
-              ></ha-switch>
-              12-Hour mode
-            </div>
-            ${this.config.hour_mode === 12
-              ? html`<div>
-                  <ha-switch
-                    .checked="${this.config.layout?.hour_mode === 'single'}"
-                    @change="${this.onHourModeLayoutChange}"
-                  ></ha-switch>
-                  "Single" hour mode layout
-                </div>`
-              : ''}
-          </div>
           <div class="side-by-side">
             <paper-dropdown-menu
               style="width: 100%"
@@ -187,27 +113,8 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
     this.config = config;
   }
 
-  private onHourModeChange({ target: { checked } }): void {
-    const hourMode: HourMode = checked ? 12 : 24;
-
-    const newConfig = { ...this.config, hour_mode: hourMode };
-    this.dispatch(newConfig);
-  }
-
   private onHideNameChange({ target: { checked } }): void {
     const hide = { ...this.config.hide, name: !checked };
-    const newConfig = { ...this.config, hide };
-    this.dispatch(newConfig);
-  }
-
-  private onHideMinutesChange({ target: { checked } }): void {
-    const hide = { ...this.config.hide, minutes: !checked };
-    const newConfig = { ...this.config, hide };
-    this.dispatch(newConfig);
-  }
-
-  private onHideSecondsChange({ target: { checked } }): void {
-    const hide = { ...this.config.hide, seconds: !checked };
     const newConfig = { ...this.config, hide };
     this.dispatch(newConfig);
   }
@@ -224,16 +131,6 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
     this.dispatch(newConfig);
   }
 
-  private onHourModeLayoutChange({ target: { checked } }): void {
-    const hourModeLayout: Layout.HourMode = checked ? 'single' : 'double';
-
-    const newConfig = {
-      ...this.config,
-      layout: { ...this.config.layout, hour_mode: hourModeLayout },
-    };
-    this.dispatch(newConfig);
-  }
-
   private onEmbeddedChange({ target: { checked } }): void {
     const newConfig = { ...this.config, layout: { embedded: checked } };
     this.dispatch(newConfig);
@@ -242,15 +139,7 @@ export class TimePickerCardEditor extends LitElement implements LovelaceCardEdit
   private onValueChange(e: CustomEvent): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const property = (e.target as any).configValue;
-    let value = e.detail.value;
-
-    if (TimePickerCardEditor.NUMBER_PROPERTIES.indexOf(property) > -1) {
-      value = parseInt(value);
-
-      if (isNaN(value)) {
-        return;
-      }
-    }
+    const value = e.detail.value;
 
     if (this.config[property] === value) {
       return;
