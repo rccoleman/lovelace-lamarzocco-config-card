@@ -21,13 +21,14 @@ export class ValueUnitComponent extends LitElement {
   @property({ attribute: false }) private unit!: ValueUnit;
 
   render(): TemplateResult {
+    console.log('min=' + this.unit.minValue + ', max=' + this.unit.maxValue);
     return html`
       <div class="value-unit">
         ${this.renderStepChanger(Direction.UP)}
         <input
           class="value-input"
           type="number"
-          placeholder="MM"
+          placeholder="XX"
           min=${this.unit.minValue}
           max=${this.unit.maxValue}
           .value="${this.unit.toString()}"

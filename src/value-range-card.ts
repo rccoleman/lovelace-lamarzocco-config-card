@@ -14,10 +14,10 @@ import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
 import { CARD_SIZE, CARD_VERSION, DEFAULT_LAYOUT_ALIGN_CONTROLS } from './const';
 
-import { ENTITY_DOMAIN, SERVICE_DOMAIN, DAYS, Value } from './value';
+import { ENTITY_DOMAIN, SERVICE_DOMAIN, DAYS, ValueRange } from './value-range';
 
 import { Partial } from './partials';
-import { Layout, ValueRangeCardConfig } from './types';
+import { Layout, ValueRangeCardConfig, ValueType } from './types';
 
 console.info(
   `%c  value-range-CARD  \n%c  Version ${CARD_VERSION}    `,
@@ -35,7 +35,8 @@ window.customCards.push({
 export class ValueRangeCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: ValueRangeCardConfig;
-  private valueMap!: Map<string, Value>;
+  // private valueMap!: Map<string, Value>;
+  private valueRangeList!: ValueRange[];
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -118,51 +119,53 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
     }
 
-    if (typeof this.valueMap === 'undefined') {
-      this.valueMap = new Map();
+    if (typeof this.valueRangeList === 'undefined') {
+      this.valueRangeList = [];
 
       for (const label of DAYS) {
-        const value = new Value(
+        const valueRange = new ValueRange(
           label,
           this.entity!.attributes[label.toLowerCase() + '_on'],
           this.entity!.attributes[label.toLowerCase() + '_off'],
           this.config,
           this.entity!.attributes[label.toLowerCase()] === 'Enabled'
         );
-        this.valueMap.set(label, value);
+        this.valueRangeList.push(valueRange);
       }
     }
 
-    for (const value of this.valueMap.values()) {
+    for (const valueRange of this.valueRangeList) {
       // Update values
-      const index = value.label.toLowerCase();
+      const index = valueRange.label.toLowerCase();
       const attr = this.entity!.attributes;
 
-      value.value_start.value = attr[index + '_on'];
-      value.value_end.value = attr[index + '_off'];
-      value.enabled = attr[index] === 'Enabled';
+      valueRange.value_start.value = attr[index + '_on'];
+      valueRange.value_end.value = attr[index + '_off'];
+      valueRange.enabled = attr[index] === 'Enabled';
 
-      this.setButtonColors(value);
+      this.setButtonColors(valueRange);
     }
 
     return html` ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
       <ha-card class=${classMap(this.rowClass)}>
         ${this.hasNameInside ? Partial.nestedName(this.name!, this.entity) : ''}
         ${repeat(
-          this.valueMap.values(),
-          (value) => html`
+          this.valueRangeList,
+          (valueRange) => html`
         <div class=${classMap(this.controlClass)}>
         <button class=${classMap(this.buttonLabelClass)} @click="${(e: CustomEvent) =>
-            this.onEnableDisable(e, value)}}" id=${value.label}>${value.label}</button>
+            this.onEnableDisable(e, valueRange)}}" id=${valueRange.label}>${
+            valueRange.label
+          }</button>
         <value-unit
-            .unit=${value.value_start.value}
-            @stepChange=${this.onHourOnStepChange}
-            @update=${this.callSetOnOffHours}
+            .unit=${valueRange.value_start}
+            @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
+            @update=${this.onValueInputChange}
         ></value-unit>
         <value-unit
-            .unit=${value.value_end.value}
-            @stepChange=${this.onHourOffStepChange}
-            @update=${this.callSetOnOffHours}
+            .unit=${valueRange.value_end}
+            @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
+            @update=${this.onValueInputChange}
         ></value-unit>
         </div>
     </div></div>`
@@ -190,46 +193,59 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     return CARD_SIZE;
   }
 
-  private setButtonColors(value: Value): void {
+  private setButtonColors(valueRange: ValueRange): void {
     const root = this.shadowRoot;
-    const button = root!.getElementById(value.label);
+    const button = root!.getElementById(valueRange.label);
     if (button) {
-      const color = value.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
+      const color = valueRange.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
       button.style.color = color;
       button.style.border = '2px solid ' + color;
     }
   }
 
-  private adjustMinMax(value: Value): void {
-    if (value) {
-      value.value_start.maxValue = value.value_start.value - 1;
-      value.value_end.minValue = value.value_end.value + 1;
+  private adjustMinMax(valueRange: ValueRange): void {
+    if (valueRange) {
+      valueRange.value_start.maxValue = valueRange.value_end.value - 1;
+      valueRange.value_end.minValue = valueRange.value_start.value + 1;
+      console.log('maxValue = ' + valueRange.value_start.maxValue);
+      console.log('minValue = ' + valueRange.value_end.minValue);
     }
   }
 
-  private onEnableDisable(event: CustomEvent, value: Value): void {
+  private onEnableDisable(event: CustomEvent, valueRange: ValueRange): void {
     event = event;
-    value.enabled = !value.enabled;
+    valueRange.enabled = !valueRange.enabled;
 
-    this.setButtonColors(value);
-    this.callEnableDisable(value);
+    this.setButtonColors(valueRange);
+    this.callEnableDisable(valueRange);
   }
 
-  private onHourOnStepChange(event: CustomEvent): void {
-    const value = this.valueMap.get(event.detail.dayOfWeek);
-    if (value) {
-      value.value_start.stepUpdate(event.detail.direction);
-      this.adjustMinMax(value);
+  private findValueRange(label: string): ValueRange | undefined {
+    return this.valueRangeList.find((valueRange) => valueRange.label === label);
+  }
+
+  private onValueInputChange(event: CustomEvent): void {
+    const valueRange = this.findValueRange(event.detail.label);
+
+    if (valueRange) {
+      this.adjustMinMax(valueRange);
       this.callSetOnOffHours(event);
     }
   }
 
-  private onHourOffStepChange(event: CustomEvent): void {
-    const value = this.valueMap.get(event.detail.dayOfWeek);
-    if (value) {
-      value.value_start.stepUpdate(event.detail.direction);
-      this.adjustMinMax(value);
-      this.callSetOnOffHours(event);
+  private onValueStepChange(event: CustomEvent, valueType: ValueType): void {
+    const valueRange = this.findValueRange(event.detail.label);
+    if (valueRange) {
+      const valueUnit =
+        valueType === ValueType.START ? valueRange.value_start : valueRange.value_end;
+
+      const orig_value = valueUnit.value;
+      valueUnit.stepUpdate(event.detail.direction);
+
+      if (orig_value != valueUnit.value) {
+        this.adjustMinMax(valueRange);
+        this.callSetOnOffHours(event);
+      }
     }
   }
 
@@ -237,42 +253,42 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
-    const value = this.valueMap.get(event.detail.dayOfWeek);
+    const valueRange = this.findValueRange(event.detail.label);
 
-    if (!value) return Promise.resolve(undefined);
+    if (!valueRange) return Promise.resolve(undefined);
 
     console.log(
       'Calling set_on_off_hours service with %s, %s, %s',
-      value.label.toLowerCase(),
-      value.value_start.value,
-      value.value_end.value
+      valueRange.label.toLowerCase(),
+      valueRange.value_start.value,
+      valueRange.value_end.value
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
-      day_of_week: value.label.toLowerCase(),
-      hour_on: value.value_start.value,
-      hour_off: value.value_end.value,
+      day_of_week: valueRange.label.toLowerCase(),
+      hour_on: valueRange.value_start.value,
+      hour_off: valueRange.value_end.value,
     });
 
     // return Promise.resolve(undefined);
   }
 
-  private callEnableDisable(value: Value): Promise<void> {
+  private callEnableDisable(valueRange: ValueRange): Promise<void> {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
 
-    if (!value) return Promise.resolve(undefined);
+    if (!valueRange) return Promise.resolve(undefined);
 
     console.log(
       'Calling set_enable_auto_on_off service with %s, %s',
-      value.label.toLowerCase(),
-      value.enabled
+      valueRange.label.toLowerCase(),
+      valueRange.enabled
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
-      day_of_week: value.label.toLowerCase(),
-      enable: value.enabled,
+      day_of_week: valueRange.label.toLowerCase(),
+      enable: valueRange.enabled,
     });
 
     // return Promise.resolve(undefined);

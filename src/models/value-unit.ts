@@ -18,9 +18,9 @@ export class ValueUnit {
    * @param value current value
    * @param label the day of the week associated with this entity
    */
-  constructor(public value: number, public label: string) {
-    this.minValue = 0;
-    this.maxValue = 0;
+  constructor(public value: number, public label: string, min: number, max: number) {
+    this.minValue = min;
+    this.maxValue = max;
   }
 
   /**
@@ -31,6 +31,11 @@ export class ValueUnit {
     if (this.isValidString(stringValue)) {
       this.setValue(parseInt(stringValue));
     }
+  }
+
+  protected isValidString(valueStr: string): boolean {
+    const value = parseInt(valueStr);
+    return !isNaN(value) && value >= this.minValue && value <= this.maxValue;
   }
 
   /**
@@ -61,10 +66,5 @@ export class ValueUnit {
     }
 
     this.value = newValue;
-  }
-
-  protected isValidString(valueStr: string): boolean {
-    const value = parseInt(valueStr);
-    return !isNaN(value) && value >= this.minValue && value <= this.maxValue;
   }
 }

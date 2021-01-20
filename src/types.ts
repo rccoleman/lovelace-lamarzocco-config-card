@@ -35,3 +35,8 @@ export enum Direction {
   UP = 'up',
   DOWN = 'down',
 }
+
+export enum ValueType {
+  START = 'start',
+  END = 'end',
+}
