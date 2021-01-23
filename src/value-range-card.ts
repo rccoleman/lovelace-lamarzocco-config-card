@@ -12,13 +12,7 @@ import {
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
-import {
-  ENTITY_DOMAIN,
-  SERVICE_DOMAIN,
-  CARD_SIZE,
-  CARD_VERSION,
-  DEFAULT_LAYOUT_ALIGN_CONTROLS,
-} from './const';
+import { ENTITY_DOMAIN, SERVICE_DOMAIN, CARD_SIZE, CARD_VERSION } from './const';
 
 import { ValueRange } from './value-range';
 
@@ -127,14 +121,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     return this.config.name || this.entity?.attributes.friendly_name;
   }
 
-  private get shouldShowPeriod(): boolean {
-    return this.config.hour_mode === 12;
-  }
-
-  private get layoutAlign(): Layout.AlignControls {
-    return this.config.layout?.align_controls ?? DEFAULT_LAYOUT_ALIGN_CONTROLS;
-  }
-
   private get rowClass(): ClassInfo {
     return {
       'value-range-row': true,
@@ -146,14 +132,12 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   private get controlClass(): ClassInfo {
     return {
       'value-range-control': true,
-      [`layout-${this.layoutAlign}`]: true,
     };
   }
 
   private get buttonLabelClass(): ClassInfo {
     return {
       'value-range-button-label': true,
-      [`layout-${this.layoutAlign}`]: true,
     };
   }
 
@@ -166,16 +150,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
     }
 
+    // Create objects on first run
     if (typeof this.valueRangeList === 'undefined') {
       this.valueRangeList = [];
 
       for (const value of this.cardSettings.valueData) {
         const valueRange = new ValueRange(
-          value.label,
-          this.entity!.attributes[value.attrStart],
-          this.entity!.attributes[value.attrEnd],
-          this.entity!.attributes[value.attrEnabled] == 'Enabled' ||
-            this.entity!.attributes[value.attrEnabled] == 1,
+          this.entity.attributes,
           this.config,
           this.cardSettings,
           value
@@ -185,28 +166,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     }
 
     for (const valueRange of this.valueRangeList) {
-      // Update values
-      // const valueData = valueRange.valueData;
-      // const attr = this.entity!.attributes;
-
-      // if (valueRange.value_start.value != attr[valueData.attrStart]) {
-      //   console.log('start: ' + valueData.attrStart + ': ' + attr[valueData.attrStart]);
-      // }
-      // if (valueRange.value_end.value != attr[valueData.attrEnd]) {
-      //   console.log('end: ' + valueData.attrEnd + ': ' + attr[valueData.attrEnd]);
-      // }
-      // if (
-      //   valueRange.enabled !=
-      //   (attr[valueData.attrEnabled] == 1 || attr[valueData.attrEnabled] == 'Enabled')
-      // ) {
-      //   console.log('enabled: ' + valueData.attrEnabled + ': ' + attr[valueData.attrEnabled]);
-      // }
-
-      // valueRange.value_start.value = attr[valueData.attrStart];
-      // valueRange.value_end.value = attr[valueData.attrEnd];
-      // valueRange.enabled =
-      //   attr[valueData.attrEnabled] == 'Enabled' || attr[valueData.attrEnabled] == 1;
-
       this.setButtonColors(valueRange);
     }
 
