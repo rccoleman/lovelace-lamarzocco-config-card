@@ -1,10 +1,5 @@
 import { ValueUnit } from './models/value-unit';
-import { ValueRangeCardConfig } from './types';
-
-export const ENTITY_DOMAIN = 'switch';
-export const SERVICE_DOMAIN = 'lamarzocco';
-
-export const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+import { CardSettings, ValueDataType, ValueRangeCardConfig } from './types';
 export class ValueRange {
   public value_start: ValueUnit;
   public value_end: ValueUnit;
@@ -13,12 +8,26 @@ export class ValueRange {
     public label: string,
     start: number,
     end: number,
+    public enabled: boolean,
     private config: ValueRangeCardConfig,
-    public enabled: boolean
+    private cardSettings: CardSettings,
+    public valueData: ValueDataType
   ) {
     config = config;
-    this.value_start = new ValueUnit(start, label, 0, end - 1);
-    this.value_end = new ValueUnit(end, label, start + 1, 23);
+    this.value_start = new ValueUnit(
+      start,
+      label,
+      cardSettings.minValue,
+      cardSettings.linkStartEnd ? end - 1 : cardSettings.maxValue,
+      cardSettings.float
+    );
+    this.value_end = new ValueUnit(
+      end,
+      label,
+      cardSettings.linkStartEnd ? start + 1 : cardSettings.minValue,
+      cardSettings.maxValue,
+      cardSettings.float
+    );
     this.label = label;
     this.enabled = enabled;
   }

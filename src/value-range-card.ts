@@ -12,15 +12,21 @@ import {
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
-import { CARD_SIZE, CARD_VERSION, DEFAULT_LAYOUT_ALIGN_CONTROLS } from './const';
+import {
+  ENTITY_DOMAIN,
+  SERVICE_DOMAIN,
+  CARD_SIZE,
+  CARD_VERSION,
+  DEFAULT_LAYOUT_ALIGN_CONTROLS,
+} from './const';
 
-import { ENTITY_DOMAIN, SERVICE_DOMAIN, DAYS, ValueRange } from './value-range';
+import { ValueRange } from './value-range';
 
 import { Partial } from './partials';
-import { Layout, ValueRangeCardConfig, ValueType } from './types';
+import { CardType, Layout, ValueRangeCardConfig, ValueType, CardSettings } from './types';
 
 console.info(
-  `%c  value-range-CARD  \n%c  Version ${CARD_VERSION}    `,
+  `%c  VALU-RANGE-CARD  \n%c  Version ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray'
 );
@@ -35,8 +41,62 @@ window.customCards.push({
 export class ValueRangeCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: ValueRangeCardConfig;
-  // private valueMap!: Map<string, Value>;
+
+  SETTINGS_AUTO_ON_OFF: CardSettings = {
+    float: false,
+    minValue: 0,
+    maxValue: 23,
+    valueData: [
+      { label: 'Sun', attrStart: 'sun_on_hour', attrEnd: 'sun_off_hour', attrEnabled: 'sun' },
+      { label: 'Mon', attrStart: 'mon_on_hour', attrEnd: 'mon_off_hour', attrEnabled: 'mon' },
+      { label: 'Tue', attrStart: 'tue_on_hour', attrEnd: 'tue_off_hour', attrEnabled: 'tue' },
+      { label: 'Wed', attrStart: 'wed_on_hour', attrEnd: 'wed_off_hour', attrEnabled: 'wed' },
+      { label: 'Thu', attrStart: 'thu_on_hour', attrEnd: 'thu_off_hour', attrEnabled: 'thu' },
+      { label: 'Fri', attrStart: 'fri_on_hour', attrEnd: 'fri_off_hour', attrEnabled: 'fri' },
+      { label: 'Sat', attrStart: 'sat_on_hour', attrEnd: 'sat_off_hour', attrEnabled: 'sat' },
+    ],
+    linkStartEnd: true,
+    funcToggle: ValueRangeCard.prototype.callEnableOnOff,
+    funcSet: ValueRangeCard.prototype.callSetOnOffTimes,
+  };
+
+  SETTINGS_PREBREW: CardSettings = {
+    float: true,
+    minValue: 0,
+    maxValue: 5,
+    valueData: [
+      {
+        label: 'Key 1',
+        attrStart: 'prebrewing_ton_k1',
+        attrEnd: 'prebrewing_toff_k1',
+        attrEnabled: 'enable_prebrewing',
+      },
+      {
+        label: 'Key 2',
+        attrStart: 'prebrewing_ton_k2',
+        attrEnd: 'prebrewing_toff_k2',
+        attrEnabled: 'enable_prebrewing',
+      },
+      {
+        label: 'Key 3',
+        attrStart: 'prebrewing_ton_k3',
+        attrEnd: 'prebrewing_toff_k3',
+        attrEnabled: 'enable_prebrewing',
+      },
+      {
+        label: 'Key 4',
+        attrStart: 'prebrewing_ton_k4',
+        attrEnd: 'prebrewing_toff_k4',
+        attrEnabled: 'enable_prebrewing',
+      },
+    ],
+    linkStartEnd: false,
+    funcToggle: ValueRangeCard.prototype.callEnablePrebrew,
+    funcSet: ValueRangeCard.prototype.callSetPrebrewTimes,
+  };
+
   private valueRangeList!: ValueRange[];
+  private cardSettings!: CardSettings;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -51,7 +111,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       Boolean(this.name) &&
       Boolean(this.config.hide?.name) === false &&
       this.config.layout?.name !== Layout.Name.INSIDE &&
-      Boolean(this.config.layout?.embedded) === false // embedded layout disables name in header
+      Boolean(this.config.layout?.embedded) === false
     );
   }
 
@@ -75,24 +135,11 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     return this.config.layout?.align_controls ?? DEFAULT_LAYOUT_ALIGN_CONTROLS;
   }
 
-  private get haCardClass(): ClassInfo {
-    return {
-      embedded: this.isEmbedded,
-    };
-  }
-
   private get rowClass(): ClassInfo {
     return {
       'value-range-row': true,
       'with-header-name': this.hasNameInHeader,
       embedded: this.isEmbedded,
-    };
-  }
-
-  private get contentClass(): ClassInfo {
-    return {
-      'value-range-control': true,
-      [`layout-${this.layoutAlign}`]: true,
     };
   }
 
@@ -122,13 +169,16 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     if (typeof this.valueRangeList === 'undefined') {
       this.valueRangeList = [];
 
-      for (const label of DAYS) {
+      for (const value of this.cardSettings.valueData) {
         const valueRange = new ValueRange(
-          label,
-          this.entity!.attributes[label.toLowerCase() + '_on'],
-          this.entity!.attributes[label.toLowerCase() + '_off'],
+          value.label,
+          this.entity!.attributes[value.attrStart],
+          this.entity!.attributes[value.attrEnd],
+          this.entity!.attributes[value.attrEnabled] == 'Enabled' ||
+            this.entity!.attributes[value.attrEnabled] == 1,
           this.config,
-          this.entity!.attributes[label.toLowerCase()] === 'Enabled'
+          this.cardSettings,
+          value
         );
         this.valueRangeList.push(valueRange);
       }
@@ -136,12 +186,26 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
     for (const valueRange of this.valueRangeList) {
       // Update values
-      const index = valueRange.label.toLowerCase();
-      const attr = this.entity!.attributes;
+      // const valueData = valueRange.valueData;
+      // const attr = this.entity!.attributes;
 
-      valueRange.value_start.value = attr[index + '_on'];
-      valueRange.value_end.value = attr[index + '_off'];
-      valueRange.enabled = attr[index] === 'Enabled';
+      // if (valueRange.value_start.value != attr[valueData.attrStart]) {
+      //   console.log('start: ' + valueData.attrStart + ': ' + attr[valueData.attrStart]);
+      // }
+      // if (valueRange.value_end.value != attr[valueData.attrEnd]) {
+      //   console.log('end: ' + valueData.attrEnd + ': ' + attr[valueData.attrEnd]);
+      // }
+      // if (
+      //   valueRange.enabled !=
+      //   (attr[valueData.attrEnabled] == 1 || attr[valueData.attrEnabled] == 'Enabled')
+      // ) {
+      //   console.log('enabled: ' + valueData.attrEnabled + ': ' + attr[valueData.attrEnabled]);
+      // }
+
+      // valueRange.value_start.value = attr[valueData.attrStart];
+      // valueRange.value_end.value = attr[valueData.attrEnd];
+      // valueRange.enabled =
+      //   attr[valueData.attrEnabled] == 'Enabled' || attr[valueData.attrEnabled] == 1;
 
       this.setButtonColors(valueRange);
     }
@@ -182,11 +246,10 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       throw new Error('You must set an entity');
     }
 
-    if (config.hour_mode && config.hour_mode !== 12 && config.hour_mode !== 24) {
-      throw new Error('Invalid hour_mode: select either 12 or 24');
-    }
-
     this.config = config;
+
+    this.cardSettings =
+      config.card_type == CardType.AUTO_ON_OFF ? this.SETTINGS_AUTO_ON_OFF : this.SETTINGS_PREBREW;
   }
 
   getCardSize(): number {
@@ -204,11 +267,9 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   }
 
   private adjustMinMax(valueRange: ValueRange): void {
-    if (valueRange) {
+    if (valueRange && this.cardSettings.linkStartEnd) {
       valueRange.value_start.maxValue = valueRange.value_end.value - 1;
       valueRange.value_end.minValue = valueRange.value_start.value + 1;
-      console.log('maxValue = ' + valueRange.value_start.maxValue);
-      console.log('minValue = ' + valueRange.value_end.minValue);
     }
   }
 
@@ -217,11 +278,15 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     valueRange.enabled = !valueRange.enabled;
 
     this.setButtonColors(valueRange);
-    this.callEnableDisable(valueRange);
+    this.cardSettings.funcToggle.call(this, valueRange);
   }
 
   private findValueRange(label: string): ValueRange | undefined {
     return this.valueRangeList.find((valueRange) => valueRange.label === label);
+  }
+
+  private findValueRangeIndex(label: string): number | undefined {
+    return this.valueRangeList.findIndex((valueRange) => valueRange.label === label);
   }
 
   private onValueInputChange(event: CustomEvent): void {
@@ -229,7 +294,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
     if (valueRange) {
       this.adjustMinMax(valueRange);
-      this.callSetOnOffHours(event);
+      this.cardSettings.funcSet.call(this, event);
     }
   }
 
@@ -244,12 +309,12 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
       if (orig_value != valueUnit.value) {
         this.adjustMinMax(valueRange);
-        this.callSetOnOffHours(event);
+        this.cardSettings.funcSet.call(this, event);
       }
     }
   }
 
-  private callSetOnOffHours(event: CustomEvent): Promise<void> {
+  callSetOnOffTimes(event: CustomEvent): Promise<void> {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
@@ -258,13 +323,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     if (!valueRange) return Promise.resolve(undefined);
 
     console.log(
-      'Calling set_on_off_hours service with %s, %s, %s',
+      'Calling set_on_off_times service with %s, %s, %s',
       valueRange.label.toLowerCase(),
       valueRange.value_start.value,
       valueRange.value_end.value
     );
 
-    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_hours', {
+    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_times', {
       day_of_week: valueRange.label.toLowerCase(),
       hour_on: valueRange.value_start.value,
       hour_off: valueRange.value_end.value,
@@ -273,7 +338,38 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     // return Promise.resolve(undefined);
   }
 
-  private callEnableDisable(valueRange: ValueRange): Promise<void> {
+  callSetPrebrewTimes(event: CustomEvent): Promise<void> {
+    if (!this.hass) {
+      throw new Error('Unable to update settings');
+    }
+    const valueRange = this.findValueRange(event.detail.label);
+    let index = this.findValueRangeIndex(event.detail.label);
+
+    if (!valueRange || index === undefined) {
+      console.log('Value not found');
+      return Promise.resolve(undefined);
+    }
+
+    // API expects key values starting at 1
+    index++;
+
+    console.log(
+      'Calling set_prebrew_times service with %d, %s, %s',
+      index,
+      valueRange.value_start.toString(),
+      valueRange.value_end.toString()
+    );
+
+    return this.hass.callService(SERVICE_DOMAIN, 'set_prebrew_times', {
+      key: index,
+      seconds_on: valueRange.value_start.toString(),
+      seconds_off: valueRange.value_end.toString(),
+    });
+
+    // return Promise.resolve(undefined);
+  }
+
+  callEnableOnOff(valueRange: ValueRange): Promise<void> {
     if (!this.hass) {
       throw new Error('Unable to update settings');
     }
@@ -289,6 +385,26 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
       day_of_week: valueRange.label.toLowerCase(),
       enable: valueRange.enabled,
+    });
+
+    // return Promise.resolve(undefined);
+  }
+
+  callEnablePrebrew(valueRange: ValueRange): Promise<void> {
+    if (!this.hass) {
+      throw new Error('Unable to update settings');
+    }
+
+    const service = valueRange.enabled ? 'turn_on' : 'turn_off';
+
+    console.log('Calling set_enable_prebrew %s service with %s', service, this.entity.entity_id);
+
+    for (const vr of this.valueRangeList) {
+      vr.enabled = valueRange.enabled;
+    }
+
+    return this.hass.callService(ENTITY_DOMAIN, service, {
+      entity_id: this.entity.entity_id,
     });
 
     // return Promise.resolve(undefined);

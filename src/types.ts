@@ -1,4 +1,5 @@
 import { LovelaceCardConfig } from 'custom-card-helpers';
+import { ValueRange } from './value-range';
 
 export interface ValueRangeCardConfig extends LovelaceCardConfig {
   entity: string;
@@ -10,6 +11,23 @@ export interface ValueRangeLayoutConfig {
   align_controls?: Layout.AlignControls;
   name?: Layout.Name;
   embedded?: boolean;
+}
+
+export interface ValueDataType {
+  label: string;
+  attrStart: string;
+  attrEnd: string;
+  attrEnabled: string;
+}
+
+export interface CardSettings {
+  float: boolean;
+  minValue: number;
+  maxValue: number;
+  valueData: Array<ValueDataType>;
+  linkStartEnd: boolean;
+  funcToggle(arg0: ValueRange): Promise<void>;
+  funcSet(arg0: CustomEvent): Promise<void>;
 }
 
 export namespace Layout {
@@ -39,4 +57,9 @@ export enum Direction {
 export enum ValueType {
   START = 'start',
   END = 'end',
+}
+
+export enum CardType {
+  AUTO_ON_OFF = 'auto',
+  PREBREW = 'prebrew',
 }
