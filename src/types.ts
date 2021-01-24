@@ -50,7 +50,7 @@ export enum ValueType {
   END = 'end',
 }
 
-export enum CardType {
+export enum CardSettingsType {
   AUTO_ON_OFF = 'auto',
   PREBREW = 'prebrew',
 }

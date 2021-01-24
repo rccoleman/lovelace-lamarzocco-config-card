@@ -13,10 +13,12 @@ import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
 import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION } from './const';
-import { HassServices } from './hass-services';
+import { CardType } from './card-type';
 import { ValueRange } from './value-range';
 import { Partial } from './partials';
-import { CardType, Layout, ValueRangeCardConfig, ValueType, CardSettings } from './types';
+import { CardSettingsType, Layout, ValueRangeCardConfig, ValueType } from './types';
+import { PrewBrewCard } from './prebrew-card';
+import { AutoOnOffCard } from './autoonoff-card';
 
 console.info(
   `%c  VALU-RANGE-CARD  \n%c  Version ${CARD_VERSION}    `,
@@ -34,62 +36,9 @@ window.customCards.push({
 export class ValueRangeCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: ValueRangeCardConfig;
-
-  SETTINGS_AUTO_ON_OFF: CardSettings = {
-    float: false,
-    minValue: 0,
-    maxValue: 23,
-    valueData: [
-      { label: 'Sun', attrStart: 'sun_on_time', attrEnd: 'sun_off_time', attrEnabled: 'sun_auto' },
-      { label: 'Mon', attrStart: 'mon_on_time', attrEnd: 'mon_off_time', attrEnabled: 'mon_auto' },
-      { label: 'Tue', attrStart: 'tue_on_time', attrEnd: 'tue_off_time', attrEnabled: 'tue_auto' },
-      { label: 'Wed', attrStart: 'wed_on_time', attrEnd: 'wed_off_time', attrEnabled: 'wed_auto' },
-      { label: 'Thu', attrStart: 'thu_on_time', attrEnd: 'thu_off_time', attrEnabled: 'thu_auto' },
-      { label: 'Fri', attrStart: 'fri_on_time', attrEnd: 'fri_off_time', attrEnabled: 'fri_auto' },
-      { label: 'Sat', attrStart: 'sat_on_time', attrEnd: 'sat_off_time', attrEnabled: 'sat_auto' },
-    ],
-    linkStartEnd: true,
-    funcToggle: HassServices.prototype.callEnableOnOff,
-    funcSet: HassServices.prototype.callSetOnOffTimes,
-  };
-
-  SETTINGS_PREBREW: CardSettings = {
-    float: true,
-    minValue: 0,
-    maxValue: 5,
-    valueData: [
-      {
-        label: 'Key 1',
-        attrStart: 'prebrewing_ton_k1',
-        attrEnd: 'prebrewing_toff_k1',
-        attrEnabled: 'enable_prebrewing',
-      },
-      {
-        label: 'Key 2',
-        attrStart: 'prebrewing_ton_k2',
-        attrEnd: 'prebrewing_toff_k2',
-        attrEnabled: 'enable_prebrewing',
-      },
-      {
-        label: 'Key 3',
-        attrStart: 'prebrewing_ton_k3',
-        attrEnd: 'prebrewing_toff_k3',
-        attrEnabled: 'enable_prebrewing',
-      },
-      {
-        label: 'Key 4',
-        attrStart: 'prebrewing_ton_k4',
-        attrEnd: 'prebrewing_toff_k4',
-        attrEnabled: 'enable_prebrewing',
-      },
-    ],
-    linkStartEnd: false,
-    funcToggle: HassServices.prototype.callEnablePrebrew,
-    funcSet: HassServices.prototype.callSetPrebrewTimes,
-  };
+  private cardType!: CardType;
 
   private valueRangeList!: ValueRange[];
-  private cardSettings!: CardSettings;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -153,11 +102,16 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     if (typeof this.valueRangeList === 'undefined') {
       this.valueRangeList = [];
 
-      for (const value of this.cardSettings.valueData) {
+      this.cardType =
+        this.config.card_type == CardSettingsType.AUTO_ON_OFF
+          ? new AutoOnOffCard(this.hass, this.valueRangeList, this.entity)
+          : new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
+
+      for (const value of this.cardType.valueData) {
         const valueRange = new ValueRange(
           this.entity.attributes,
           this.config,
-          this.cardSettings,
+          this.cardType,
           value
         );
         this.valueRangeList.push(valueRange);
@@ -205,9 +159,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     }
 
     this.config = config;
-
-    this.cardSettings =
-      config.card_type == CardType.AUTO_ON_OFF ? this.SETTINGS_AUTO_ON_OFF : this.SETTINGS_PREBREW;
   }
 
   getCardSize(): number {
@@ -225,7 +176,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   }
 
   private adjustMinMax(valueRange: ValueRange): void {
-    if (valueRange && this.cardSettings.linkStartEnd) {
+    if (valueRange && this.cardType.linkStartEnd) {
       valueRange.value_start.maxValue = valueRange.value_end.value - 1;
       valueRange.value_end.minValue = valueRange.value_start.value + 1;
     }
@@ -236,7 +187,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     valueRange.enabled = !valueRange.enabled;
 
     this.setButtonColors(valueRange);
-    this.cardSettings.funcToggle.call(this, valueRange);
+    this.cardType.funcToggle(valueRange);
   }
 
   findValueRange(label: string): ValueRange | undefined {
@@ -248,7 +199,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
     if (valueRange) {
       this.adjustMinMax(valueRange);
-      this.cardSettings.funcSet.call(this, event);
+      this.cardType.funcSet(event);
     }
   }
 
@@ -263,7 +214,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
       if (orig_value != valueUnit.value) {
         this.adjustMinMax(valueRange);
-        this.cardSettings.funcSet.call(this, event);
+        this.cardType.funcSet(event);
       }
     }
   }
