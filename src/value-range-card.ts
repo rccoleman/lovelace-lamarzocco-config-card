@@ -12,10 +12,9 @@ import {
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
-import { ENTITY_DOMAIN, SERVICE_DOMAIN, CARD_SIZE, CARD_VERSION } from './const';
-
+import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION } from './const';
+import { HassServices } from './hass-services';
 import { ValueRange } from './value-range';
-
 import { Partial } from './partials';
 import { CardType, Layout, ValueRangeCardConfig, ValueType, CardSettings } from './types';
 
@@ -50,8 +49,8 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       { label: 'Sat', attrStart: 'sat_on_time', attrEnd: 'sat_off_time', attrEnabled: 'sat_auto' },
     ],
     linkStartEnd: true,
-    funcToggle: ValueRangeCard.prototype.callEnableOnOff,
-    funcSet: ValueRangeCard.prototype.callSetOnOffTimes,
+    funcToggle: HassServices.prototype.callEnableOnOff,
+    funcSet: HassServices.prototype.callSetOnOffTimes,
   };
 
   SETTINGS_PREBREW: CardSettings = {
@@ -85,12 +84,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       },
     ],
     linkStartEnd: false,
-    funcToggle: ValueRangeCard.prototype.callEnablePrebrew,
-    funcSet: ValueRangeCard.prototype.callSetPrebrewTimes,
+    funcToggle: HassServices.prototype.callEnablePrebrew,
+    funcSet: HassServices.prototype.callSetPrebrewTimes,
   };
 
   private valueRangeList!: ValueRange[];
   private cardSettings!: CardSettings;
+  private hassServices!: HassServices;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -162,6 +162,16 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
           value
         );
         this.valueRangeList.push(valueRange);
+      }
+
+      this.hassServices = new HassServices(this.hass, this.entity, this.valueRangeList);
+
+      if (this.config.card_type == CardType.AUTO_ON_OFF) {
+        this.cardSettings.funcSet = this.hassServices.callSetOnOffTimes;
+        this.cardSettings.funcToggle = this.hassServices.callEnableOnOff;
+      } else {
+        this.cardSettings.funcSet = this.hassServices.callSetPrebrewTimes;
+        this.cardSettings.funcToggle = this.hassServices.callEnablePrebrew;
       }
     }
 
@@ -240,12 +250,8 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     this.cardSettings.funcToggle.call(this, valueRange);
   }
 
-  private findValueRange(label: string): ValueRange | undefined {
+  findValueRange(label: string): ValueRange | undefined {
     return this.valueRangeList.find((valueRange) => valueRange.label === label);
-  }
-
-  private findValueRangeIndex(label: string): number | undefined {
-    return this.valueRangeList.findIndex((valueRange) => valueRange.label === label);
   }
 
   private onValueInputChange(event: CustomEvent): void {
@@ -271,102 +277,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
         this.cardSettings.funcSet.call(this, event);
       }
     }
-  }
-
-  callSetOnOffTimes(event: CustomEvent): Promise<void> {
-    if (!this.hass) {
-      throw new Error('Unable to update settings');
-    }
-    const valueRange = this.findValueRange(event.detail.label);
-
-    if (!valueRange) return Promise.resolve(undefined);
-
-    console.log(
-      'Calling set_on_off_times service with %s, %s, %s',
-      valueRange.label.toLowerCase(),
-      valueRange.value_start.value,
-      valueRange.value_end.value
-    );
-
-    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_times', {
-      day_of_week: valueRange.label.toLowerCase(),
-      hour_on: valueRange.value_start.value,
-      hour_off: valueRange.value_end.value,
-    });
-
-    // return Promise.resolve(undefined);
-  }
-
-  callSetPrebrewTimes(event: CustomEvent): Promise<void> {
-    if (!this.hass) {
-      throw new Error('Unable to update settings');
-    }
-    const valueRange = this.findValueRange(event.detail.label);
-    let index = this.findValueRangeIndex(event.detail.label);
-
-    if (!valueRange || index === undefined) {
-      console.log('Value not found');
-      return Promise.resolve(undefined);
-    }
-
-    // API expects key values starting at 1
-    index++;
-
-    console.log(
-      'Calling set_prebrew_times service with %d, %s, %s',
-      index,
-      valueRange.value_start.toString(),
-      valueRange.value_end.toString()
-    );
-
-    return this.hass.callService(SERVICE_DOMAIN, 'set_prebrew_times', {
-      key: index,
-      seconds_on: valueRange.value_start.toString(),
-      seconds_off: valueRange.value_end.toString(),
-    });
-
-    // return Promise.resolve(undefined);
-  }
-
-  callEnableOnOff(valueRange: ValueRange): Promise<void> {
-    if (!this.hass) {
-      throw new Error('Unable to update settings');
-    }
-
-    if (!valueRange) return Promise.resolve(undefined);
-
-    console.log(
-      'Calling set_enable_auto_on_off service with %s, %s',
-      valueRange.label.toLowerCase(),
-      valueRange.enabled
-    );
-
-    return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_enable', {
-      day_of_week: valueRange.label.toLowerCase(),
-      enable: valueRange.enabled,
-    });
-
-    // return Promise.resolve(undefined);
-  }
-
-  callEnablePrebrew(valueRange: ValueRange): Promise<void> {
-    if (!this.hass) {
-      throw new Error('Unable to update settings');
-    }
-
-    const service = valueRange.enabled ? 'turn_on' : 'turn_off';
-
-    console.log('Calling set_enable_prebrew %s service with %s', service, this.entity.entity_id);
-
-    for (const vr of this.valueRangeList) {
-      vr.enabled = valueRange.enabled;
-    }
-
-    return this.hass.callService(ENTITY_DOMAIN, service, {
-      entity_id: this.entity.entity_id,
-    });
-
-    // return Promise.resolve(undefined);
   }
 
   static get styles(): CSSResult {
