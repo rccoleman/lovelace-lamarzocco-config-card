@@ -41,13 +41,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     minValue: 0,
     maxValue: 23,
     valueData: [
-      { label: 'Sun', attrStart: 'sun_on_hour', attrEnd: 'sun_off_hour', attrEnabled: 'sun' },
-      { label: 'Mon', attrStart: 'mon_on_hour', attrEnd: 'mon_off_hour', attrEnabled: 'mon' },
-      { label: 'Tue', attrStart: 'tue_on_hour', attrEnd: 'tue_off_hour', attrEnabled: 'tue' },
-      { label: 'Wed', attrStart: 'wed_on_hour', attrEnd: 'wed_off_hour', attrEnabled: 'wed' },
-      { label: 'Thu', attrStart: 'thu_on_hour', attrEnd: 'thu_off_hour', attrEnabled: 'thu' },
-      { label: 'Fri', attrStart: 'fri_on_hour', attrEnd: 'fri_off_hour', attrEnabled: 'fri' },
-      { label: 'Sat', attrStart: 'sat_on_hour', attrEnd: 'sat_off_hour', attrEnabled: 'sat' },
+      { label: 'Sun', attrStart: 'sun_on_time', attrEnd: 'sun_off_time', attrEnabled: 'sun_auto' },
+      { label: 'Mon', attrStart: 'mon_on_time', attrEnd: 'mon_off_time', attrEnabled: 'mon_auto' },
+      { label: 'Tue', attrStart: 'tue_on_time', attrEnd: 'tue_off_time', attrEnabled: 'tue_auto' },
+      { label: 'Wed', attrStart: 'wed_on_time', attrEnd: 'wed_off_time', attrEnabled: 'wed_auto' },
+      { label: 'Thu', attrStart: 'thu_on_time', attrEnd: 'thu_off_time', attrEnabled: 'thu_auto' },
+      { label: 'Fri', attrStart: 'fri_on_time', attrEnd: 'fri_off_time', attrEnabled: 'fri_auto' },
+      { label: 'Sat', attrStart: 'sat_on_time', attrEnd: 'sat_off_time', attrEnabled: 'sat_auto' },
     ],
     linkStartEnd: true,
     funcToggle: ValueRangeCard.prototype.callEnableOnOff,
@@ -404,6 +404,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
         flex-direction: row;
         align-items: center;
         padding: 2px;
+        justify-content: center;
       }
 
       .value-range-control {
