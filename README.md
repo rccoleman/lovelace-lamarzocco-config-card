@@ -1,11 +1,4 @@
-# Time Picker Card
-
-[![HACS][hacs-shield]][hacs-link]
-[![Downloads][downloads-shield]][downloads-link]
-[![GitHub Release][releases-shield]][releases-link]
-[![CI][ci-shield]][ci-link]
-[![Project Maintenance][maintenance-shield]][maintenance-link]
-[![License][license-shield]][license-link]
+# Value Range Card
 
 ## Overview
 
@@ -110,8 +103,6 @@ layout:
 
 | Name           | Value                     | Requirement  | Description                                                                                        | Default  |
 | -------------- | ------------------------- | ------------ | -------------------------------------------------------------------------------------------------- | -------- |
-| hour_mode      | `single`, `double`        | **Optional** | Whether to show both AM/PM or just the current mode. In `single` mode, tap the value to change it. | `double` |
-| align_controls | `left`, `center`, `right` | **Optional** | Horizontal alignment of the controls                                                               | `center` |
 | name           | `header`, `inside`        | **Optional** | Whether to show the name as a header or inside the card                                            | `header` |
 | embedded       | boolean                   | **Optional** | Render with embedded style - disables padding, box shadow, and card header                         | `false`  |
 
@@ -135,23 +126,6 @@ you can use the following variables in your theme's config file:
 | time-picker-off-color                 | `var(--disabled-text-color)`   | AM / PM inactive color                 |
 | time-picker-border-radius             | `var(--ha-card-border-radius)` | Border radius of the card              |
 
-## Meta
-
-**Georgi Gardev**
-
-- [gar.dev](https://gar.dev)
-- [![GitHub][github-icon]][github-link] [GeorgeSG][github-link]
-- [![Twitter][twitter-icon]][twitter-link] [@georgesg92][twitter-link]
-
-[hacs-shield]: https://img.shields.io/badge/HACS-Default-brightgreen.svg
-[hacs-link]: https://github.com/custom-components/hacs
-[downloads-shield]: https://img.shields.io/github/downloads/GeorgeSG/lovelace-time-picker-card/latest/total?color=brightgreen&logo=github
-[downloads-link]: https://github.com/GeorgeSG/lovelace-time-picker-card/releases
-[releases-shield]: https://img.shields.io/github/release/GeorgeSG/lovelace-time-picker-card.svg
-[releases-link]: https://github.com/GeorgeSG/lovelace-time-picker-card/releases
-[ci-shield]: https://img.shields.io/github/workflow/status/GeorgeSG/lovelace-time-picker-card/CI?label=CI&logo=github&
-[ci-link]: https://github.com/GeorgeSG/lovelace-time-picker-card/actions?query=workflow%3ACI
-[maintenance-shield]: https://img.shields.io/maintenance/yes/2020.svg
 [maintenance-link]: https://github.com/GeorgeSG/lovelace-time-picker-card
 [license-shield]: https://img.shields.io/github/license/GeorgeSG/lovelace-time-picker-card?color=brightgreen
 [license-link]: https://github.com/GeorgeSG/lovelace-time-picker-card/blob/master/LICENSE
