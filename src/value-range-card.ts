@@ -90,7 +90,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
   private valueRangeList!: ValueRange[];
   private cardSettings!: CardSettings;
-  private hassServices!: HassServices;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -162,16 +161,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
           value
         );
         this.valueRangeList.push(valueRange);
-      }
-
-      this.hassServices = new HassServices(this.hass, this.entity, this.valueRangeList);
-
-      if (this.config.card_type == CardType.AUTO_ON_OFF) {
-        this.cardSettings.funcSet = this.hassServices.callSetOnOffTimes;
-        this.cardSettings.funcToggle = this.hassServices.callEnableOnOff;
-      } else {
-        this.cardSettings.funcSet = this.hassServices.callSetPrebrewTimes;
-        this.cardSettings.funcToggle = this.hassServices.callEnablePrebrew;
       }
     }
 

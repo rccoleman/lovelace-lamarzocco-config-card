@@ -4,15 +4,9 @@ import { ValueRange } from './value-range';
 import { HassEntity } from 'home-assistant-js-websocket';
 
 export class HassServices {
-  private hass: HomeAssistant;
-  private valueRangeList: ValueRange[];
-  private entity: HassEntity;
-
-  constructor(hass: HomeAssistant, entity: HassEntity, valueRangeList: ValueRange[]) {
-    this.hass = hass;
-    this.valueRangeList = valueRangeList;
-    this.entity = entity;
-  }
+  private hass!: HomeAssistant;
+  private valueRangeList!: ValueRange[];
+  private entity!: HassEntity;
 
   findValueRange(label: string): ValueRange | undefined {
     return this.valueRangeList.find((valueRange) => valueRange.label === label);
