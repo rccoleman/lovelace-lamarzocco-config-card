@@ -25,8 +25,8 @@ assignees: ''
   Home Assistant frontend: Developer tools -> Info.
 -->
 
-- time-picker-card release with the issue:
-- Last working time-picker-card release (if known):
+- value-range-card release with the issue:
+- Last working value-range-card release (if known):
 - Browser and Operating System:
 
 ### Problem-relevant configuration
