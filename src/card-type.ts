@@ -12,6 +12,7 @@ export abstract class CardType {
   public abstract float: boolean;
   public abstract minValue: number;
   public abstract maxValue: number;
+  public abstract numValues: number;
   public abstract valueData: Array<ValueDataType>;
 
   constructor(hass: HomeAssistant, valueRangeList: ValueRange[], entity: HassEntity) {

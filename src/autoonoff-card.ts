@@ -15,6 +15,7 @@ export class AutoOnOffCard extends CardType {
     { label: 'Fri', attrStart: 'fri_on_time', attrEnd: 'fri_off_time', attrEnabled: 'fri_auto' },
     { label: 'Sat', attrStart: 'sat_on_time', attrEnd: 'sat_off_time', attrEnabled: 'sat_auto' },
   ];
+  public numValues = this.valueData.length;
   public linkStartEnd = true;
 
   funcSet(event: CustomEvent): Promise<void> {

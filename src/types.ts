@@ -54,3 +54,10 @@ export enum CardSettingsType {
   AUTO_ON_OFF = 'auto',
   PREBREW = 'prebrew',
 }
+
+export enum Models {
+  // Models
+  GS3_AV = 'GS3 AV',
+  GS3_MP = 'GS3 MP',
+  LM = 'Linea Mini',
+}

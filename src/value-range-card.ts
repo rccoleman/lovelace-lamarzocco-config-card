@@ -12,11 +12,11 @@ import {
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
-import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION } from './const';
+import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
 import { CardType } from './card-type';
 import { ValueRange } from './value-range';
 import { Partial } from './partials';
-import { CardSettingsType, Layout, ValueRangeCardConfig, ValueType } from './types';
+import { CardSettingsType, Layout, ValueRangeCardConfig, ValueType, Models } from './types';
 import { PrewBrewCard } from './prebrew-card';
 import { AutoOnOffCard } from './autoonoff-card';
 
@@ -98,6 +98,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
     }
 
+    if (
+      this.config.card_type == CardSettingsType.PREBREW &&
+      this.entity.attributes[MODEL_NAME] == Models.GS3_MP
+    ) {
+      return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
+    }
+
     // Create objects on first run
     if (typeof this.valueRangeList === 'undefined') {
       this.valueRangeList = [];
@@ -107,8 +114,12 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
           ? new AutoOnOffCard(this.hass, this.valueRangeList, this.entity)
           : new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
 
-      for (const value of this.cardType.valueData) {
-        const valueRange = new ValueRange(this.entity.attributes, this.cardType, value);
+      for (let i = 0; i < this.cardType.numValues; i++) {
+        const valueRange = new ValueRange(
+          this.entity.attributes,
+          this.cardType,
+          this.cardType.valueData[i]
+        );
         this.valueRangeList.push(valueRange);
       }
     }

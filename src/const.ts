@@ -9,3 +9,5 @@ export const CARD_SIZE = 3;
 
 // Config defaults
 export const DEFAULT_CARD_TYPE = CardSettingsType.AUTO_ON_OFF;
+
+export const MODEL_NAME = 'model_name';

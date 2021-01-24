@@ -1,7 +1,7 @@
-import { ENTITY_DOMAIN, SERVICE_DOMAIN } from './const';
+import { ENTITY_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from './const';
 import { ValueRange } from './value-range';
 import { CardType } from './card-type';
-
+import { Models } from './types';
 export class PrewBrewCard extends CardType {
   public float = true;
   public minValue = 0;
@@ -32,6 +32,7 @@ export class PrewBrewCard extends CardType {
       attrEnabled: 'enable_prebrewing',
     },
   ];
+  public numValues = this.entity.attributes[MODEL_NAME] == Models.LM ? 1 : this.valueData.length;
   public linkStartEnd = false;
 
   funcSet(event: CustomEvent): Promise<void> {
