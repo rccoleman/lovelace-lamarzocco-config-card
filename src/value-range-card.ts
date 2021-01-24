@@ -108,12 +108,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
           : new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
 
       for (const value of this.cardType.valueData) {
-        const valueRange = new ValueRange(
-          this.entity.attributes,
-          this.config,
-          this.cardType,
-          value
-        );
+        const valueRange = new ValueRange(this.entity.attributes, this.cardType, value);
         this.valueRangeList.push(valueRange);
       }
     }

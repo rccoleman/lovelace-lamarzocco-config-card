@@ -1,6 +1,6 @@
 import { HassEntityAttributeBase } from 'home-assistant-js-websocket';
 import { ValueUnit } from './models/value-unit';
-import { CardSettings, ValueDataType, ValueRangeCardConfig } from './types';
+import { CardSettings, ValueDataType } from './types';
 export class ValueRange {
   public value_start: ValueUnit;
   public value_end: ValueUnit;
@@ -8,9 +8,8 @@ export class ValueRange {
   public label: string;
 
   constructor(
-    private attributes: HassEntityAttributeBase,
-    private config: ValueRangeCardConfig,
-    private cardSettings: CardSettings,
+    attributes: HassEntityAttributeBase,
+    cardSettings: CardSettings,
     public valueData: ValueDataType
   ) {
     this.label = valueData.label;
