@@ -5,7 +5,7 @@ export const ENTITY_DOMAIN = 'switch';
 export const SERVICE_DOMAIN = 'lamarzocco';
 
 export const CARD_VERSION = pkg.version;
-export const CARD_SIZE = 3;
+export const CARD_SIZE = 6;
 
 // Config defaults
 export const DEFAULT_CARD_TYPE = CardSettingsType.AUTO_ON_OFF;
