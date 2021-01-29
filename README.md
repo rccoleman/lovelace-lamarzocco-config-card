@@ -1,10 +1,8 @@
-# Value Range Card
+# La Marzocco Config Card
 
 ## Overview
 
-This is a Time Picker Card for [Home Assistant](https://www.home-assistant.io/)'s [Lovelace UI](https://www.home-assistant.io/lovelace).
-
-Requires an [Input Datetime](https://www.home-assistant.io/integrations/input_datetime/) that has time (`has_time: true`).
+This is a card for [Home Assistant](https://www.home-assistant.io/)'s [Lovelace UI](https://www.home-assistant.io/lovelace) that can be used to display and configure settings for network-connected La Marzocco espresso machines.
 
 ## Installation
 
@@ -14,27 +12,21 @@ Install using [HACS](https://hacs.xyz) and add the following to your config:
 
 ```yaml
 resources:
-  - url: /hacsfiles/lovelace-time-picker-card/time-picker-card.js
+  - url: /hacsfiles/lovelace-lamarzocco-config-card/lamarzocco-config-card.js
     type: module
 ```
 
 ### Manual
 
-Download time-picker-card.js from the [latest realease](https://github.com/GeorgeSG/lovelace-time-picker-card/releases/latest) and place it in your `config/www` folder. Add the following to your config:
+Download lamarzocco-config-card.js from the [latest realease](https://github.com/rccoleman/lovelace-lamarzocco-config-card/releases/latest) and place it in your `config/www` folder. Add the following to your config:
 
 ```yaml
 resources:
-  - url: /local/time-picker-card.js
+  - url: /local/lamarzocco-config-card.js
     type: module
 ```
 
 ## Usage
-
-### Visual Editor
-
-Time Picker Card supports Lovelace's Visual Editor. Click the + button to add a card and search for time picker.
-
-![Visual Editor](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/visual_editor.png)
 
 ## Examples
 
@@ -101,10 +93,10 @@ layout:
 
 ### Layout Object
 
-| Name           | Value                     | Requirement  | Description                                                                                        | Default  |
-| -------------- | ------------------------- | ------------ | -------------------------------------------------------------------------------------------------- | -------- |
-| name           | `header`, `inside`        | **Optional** | Whether to show the name as a header or inside the card                                            | `header` |
-| embedded       | boolean                   | **Optional** | Render with embedded style - disables padding, box shadow, and card header                         | `false`  |
+| Name     | Value              | Requirement  | Description                                                                | Default  |
+| -------- | ------------------ | ------------ | -------------------------------------------------------------------------- | -------- |
+| name     | `header`, `inside` | **Optional** | Whether to show the name as a header or inside the card                    | `header` |
+| embedded | boolean            | **Optional** | Render with embedded style - disables padding, box shadow, and card header | `false`  |
 
 ### Hide Object
 
