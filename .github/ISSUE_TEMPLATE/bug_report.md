@@ -25,8 +25,8 @@ assignees: ''
   Home Assistant frontend: Developer tools -> Info.
 -->
 
-- value-range-card release with the issue:
-- Last working value-range-card release (if known):
+- lamarzocco-config-card release with the issue:
+- Last working lamarzocco-config-card release (if known):
 - Browser and Operating System:
 
 ### Problem-relevant configuration

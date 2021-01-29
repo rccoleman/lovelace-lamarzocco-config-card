@@ -1,6 +1,6 @@
 ---
 name: Feature request
-about: Suggest a feature for value-range-card
+about: Suggest a feature for lamarzocco-config-card
 title: ''
 labels: feature request
 assignees: ''

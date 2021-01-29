@@ -11,7 +11,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Build value-range-card.js
+      - name: Build lamarzocco-config-card.js
         run: |
           npm install
           npm run build
@@ -19,6 +19,6 @@ jobs:
       - name: Upload to release
         uses: shopify/upload-to-release@1.0.0
         with:
-          name: value-range-card.js
-          path: dist/value-range-card.js
+          name: lamarzocco-config-card.js
+          path: dist/lamarzocco-config-card.js
           repo-token: ${{ secrets.GITHUB_TOKEN }}
