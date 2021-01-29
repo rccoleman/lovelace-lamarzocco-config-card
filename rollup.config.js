@@ -18,7 +18,7 @@ const serveOptions = {
 };
 
 export default {
-  input: 'src/value-range-card.ts',
+  input: 'src/lamarzocco-config-card.ts',
   output: {
     dir: './dist',
     format: 'es',

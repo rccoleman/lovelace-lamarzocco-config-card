@@ -57,7 +57,7 @@ export class ValueUnitComponent extends LitElement {
 
   private renderStepChanger(direction: Direction): TemplateResult {
     return html`
-      <div class="value-range-icon" @click=${() => this.onStepChangerClick(direction)}>
+      <div class="lamarzocco-config-icon" @click=${() => this.onStepChangerClick(direction)}>
         <ha-icon .icon="hass:chevron-${direction}"></ha-icon>
         <mwc-ripple id="ripple"></mwc-ripple>
       </div>
@@ -73,20 +73,20 @@ export class ValueUnitComponent extends LitElement {
         padding: 0 2px;
       }
 
-      .value-range-icon {
+      .lamarzocco-config-icon {
         width: 30px;
         padding: 2px;
         text-align: center;
         cursor: pointer;
-        color: var(--tpc-icon-color);
+        color: var(--lmcc-icon-color);
       }
 
       .value-input {
         width: 35px;
         padding: 4px 4px 4px;
         background: var(--primary-background-color);
-        border: 2px solid var(--tpc-elements-background-color);
-        color: var(--tpc-text-color, #fff);
+        border: 2px solid var(--lmcc-elements-background-color);
+        color: var(--lmcc-text-color, #fff);
         text-align: center;
         font-size: 1em;
         -moz-appearance: textfield;

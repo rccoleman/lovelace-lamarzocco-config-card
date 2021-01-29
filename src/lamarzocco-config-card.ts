@@ -16,27 +16,28 @@ import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
 import { CardType } from './card-type';
 import { ValueRange } from './value-range';
 import { Partial } from './partials';
-import { CardSettingsType, Layout, ValueRangeCardConfig, ValueType, Models } from './types';
+import { CardSettingsType, Layout, LaMarzoccoConfigCardConfig, ValueType, Models } from './types';
 import { PrewBrewCard } from './prebrew-card';
 import { AutoOnOffCard } from './autoonoff-card';
 import { DoseCard } from './dose-card';
 
 console.info(
-  `%c  VALUE-RANGE-CARD  \n%c  Version ${CARD_VERSION}    `,
+  `%c  LA-MARZOCCO-CONFIG-CARD  \n%c  Version ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray'
 );
 
 window.customCards = window.customCards || [];
 window.customCards.push({
-  type: 'value-range-card',
-  name: 'Value Range Card',
-  description: 'A Value Range card for assigning multiple sets of upper/lower values.',
+  type: 'lamarzocco-config-card',
+  name: 'La Marzocco Config Card',
+  description:
+    'A card that allows configuration of an network-connected La Marzocco espresso machine.',
 });
-@customElement('value-range-card')
-export class ValueRangeCard extends LitElement implements LovelaceCard {
+@customElement('lamarzocco-config-card')
+export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
-  @property({ attribute: false }) private config!: ValueRangeCardConfig;
+  @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
   private cardType!: CardType;
 
   private valueRangeList!: ValueRange[];
@@ -72,7 +73,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
   private get rowClass(): ClassInfo {
     return {
-      'value-range-row': true,
+      'lamarzocco-config-row': true,
       'with-header-name': this.hasNameInHeader,
       embedded: this.isEmbedded,
     };
@@ -80,13 +81,13 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
 
   private get controlClass(): ClassInfo {
     return {
-      'value-range-control': true,
+      'lamarzocco-config-control': true,
     };
   }
 
   private get buttonLabelClass(): ClassInfo {
     return {
-      'value-range-button-label': true,
+      'lamarzocco-config-button-label': true,
     };
   }
 
@@ -174,7 +175,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       </ha-card>`;
   }
 
-  setConfig(config: ValueRangeCardConfig): void {
+  setConfig(config: LaMarzoccoConfigCardConfig): void {
     if (!config) {
       throw new Error('Invalid configuration');
     }
@@ -194,7 +195,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
     const root = this.shadowRoot;
     const button = root!.getElementById(valueRange.label);
     if (button) {
-      const color = valueRange.enabled ? 'var(--success-color)' : 'var(--tpc-off-color)';
+      const color = valueRange.enabled ? 'var(--success-color)' : 'var(--lmcc-off-color)';
       button.style.color = color;
       button.style.border = '2px solid ' + color;
     }
@@ -251,34 +252,37 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   static get styles(): CSSResult {
     return css`
       :host {
-        --tpc-elements-background-color: var(
-          --value-range-elements-background-color,
+        --lmcc-elements-background-color: var(
+          --lamarzocco-config-elements-background-color,
           var(--primary-color)
         );
 
-        --tpc-icon-color: var(--value-range-icon-color, var(--primary-text-color));
-        --tpc-text-color: var(--value-range-text-color, #fff);
-        --tpc-accent-color: var(--value-range-accent-color, var(--primary-color));
-        --tpc-off-color: var(--value-range-off-color, var(--disabled-text-color));
+        --lmcc-icon-color: var(--lamarzocco-config-icon-color, var(--primary-text-color));
+        --lmcc-text-color: var(--lamarzocco-config-text-color, #fff);
+        --lmcc-accent-color: var(--lamarzocco-config-accent-color, var(--primary-color));
+        --lmcc-off-color: var(--lamarzocco-config-off-color, var(--disabled-text-color));
 
-        --tpc-border-radius: var(--value-range-border-radius, var(--ha-card-border-radius, 4px));
+        --lmcc-border-radius: var(
+          --lamarzocco-config-border-radius,
+          var(--ha-card-border-radius, 4px)
+        );
       }
 
       ha-card.embedded {
         box-shadow: none;
       }
 
-      .value-range-header {
+      .lamarzocco-config-header {
         padding: 0px;
-        color: var(--tpc-text-color);
-        background-color: var(--tpc-elements-background-color);
-        border-top-left-radius: var(--tpc-border-radius);
-        border-top-right-radius: var(--tpc-border-radius);
+        color: var(--lmcc-text-color);
+        background-color: var(--lmcc-elements-background-color);
+        border-top-left-radius: var(--lmcc-border-radius);
+        border-top-right-radius: var(--lmcc-border-radius);
         font-size: 1em;
         text-align: center;
       }
 
-      .value-range-row {
+      .lamarzocco-config-row {
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -286,46 +290,46 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
         justify-content: center;
       }
 
-      .value-range-control {
+      .lamarzocco-config-control {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 4px;
       }
 
-      .value-range-button-label {
+      .lamarzocco-config-button-label {
         background-color: var(--primary-background-color);
-        color: var(--tpc-text-color);
+        color: var(--lmcc-text-color);
         border: 2px solid var(--success-color);
         font-weight: bolder;
       }
 
-      .value-range-row.embedded {
+      .lamarzocco-config-row.embedded {
         padding: 2;
         justify-content: center;
       }
 
-      .value-range-row.with-header-name {
+      .lamarzocco-config-row.with-header-name {
         padding: 6px 6px 6px;
         justify-content: center;
       }
 
-      .value-range-content {
+      .lamarzocco-config-content {
         display: flex;
         flex-direction: row;
         align-items: center;
         flex: 1 0 auto;
       }
 
-      .value-range-content.layout-left {
+      .lamarzocco-config-content.layout-left {
         justify-content: flex-start;
       }
 
-      .value-range-content.layout-center {
+      .lamarzocco-config-content.layout-center {
         justify-content: center;
       }
 
-      .value-range-content.layout-right {
+      .lamarzocco-config-content.layout-right {
         justify-content: flex-end;
       }
 
@@ -338,7 +342,7 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   static getStubConfig(
     _: HomeAssistant,
     entities: Array<string>
-  ): Omit<ValueRangeCardConfig, 'type'> {
+  ): Omit<LaMarzoccoConfigCardConfig, 'type'> {
     const cardEntity = entities.find((entityId) => computeDomain(entityId) === ENTITY_DOMAIN);
 
     return {
@@ -347,6 +351,6 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   }
 
   static getConfigElement(): LovelaceCard {
-    return document.createElement('value-range-card-editor') as LovelaceCard;
+    return document.createElement('lamarzocco-config-card-editor') as LovelaceCard;
   }
 }

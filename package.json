@@ -1,8 +1,8 @@
 {
-  "name": "value-range-card",
-  "version": "1.1.1",
+  "name": "lamarzocco-config-card",
+  "version": "0.0.1",
   "author": "Rob Coleman <rccoleman@gmail.com>",
-  "description": "Lovelace value-range-card",
+  "description": "Lovelace lamarzocco-config-card",
   "keywords": [
     "home-assistant",
     "homeassistant",
@@ -10,10 +10,11 @@
     "automation",
     "lovelace",
     "lovelace-card",
-    "lovelace-custom-card"
+    "lovelace-custom-card",
+    "lamarzocco"
   ],
   "license": "MIT",
-  "repository": "git@hgithub.com/rccoleman/lovelace-time-picker-card.git",
+  "repository": "git@github.com/rccoleman/lovelace-lamarzocco-config-card.git",
   "scripts": {
     "start": "rollup -c --watch",
     "build": "npm run lint && npm run rollup",

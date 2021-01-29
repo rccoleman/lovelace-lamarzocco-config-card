@@ -1,11 +1,11 @@
 import { LovelaceCardConfig } from 'custom-card-helpers';
-export interface ValueRangeCardConfig extends LovelaceCardConfig {
+export interface LaMarzoccoConfigCardConfig extends LovelaceCardConfig {
   entity: string;
   name: string;
-  layout: ValueRangeLayoutConfig;
-  hide: ValueRangeHideConfig;
+  layout: LaMarzoccoConfigLayoutConfig;
+  hide: LaMarzoccoConfigHideConfig;
 }
-export interface ValueRangeLayoutConfig {
+export interface LaMarzoccoConfigLayoutConfig {
   name: Layout.Name;
   embedded: boolean;
 }
@@ -23,7 +23,7 @@ export namespace Layout {
   }
 }
 
-export interface ValueRangeHideConfig {
+export interface LaMarzoccoConfigHideConfig {
   name: boolean;
 }
 
