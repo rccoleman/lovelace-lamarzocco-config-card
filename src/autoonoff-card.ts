@@ -30,13 +30,13 @@ export class AutoOnOffCard extends CardType {
       'Calling set_on_off_times service with %s, %s, %s',
       valueRange.label.toLowerCase(),
       valueRange.value_start.value,
-      valueRange.value_end.value
+      valueRange.value_end?.value
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_auto_on_off_times', {
       day_of_week: valueRange.label.toLowerCase(),
       hour_on: valueRange.value_start.value,
-      hour_off: valueRange.value_end.value,
+      hour_off: valueRange.value_end?.value,
     });
 
     // return Promise.resolve(undefined);

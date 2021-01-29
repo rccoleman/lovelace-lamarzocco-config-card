@@ -30,5 +30,7 @@ export abstract class CardType {
   }
 
   abstract funcSet(event: CustomEvent): Promise<void>;
-  abstract funcToggle(valueRange: ValueRange): Promise<void>;
+
+  // Not all card types will have a toggle or on/off
+  funcToggle?(valueRange: ValueRange): Promise<void>;
 }

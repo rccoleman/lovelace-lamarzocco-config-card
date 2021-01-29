@@ -82,7 +82,7 @@ export class ValueUnitComponent extends LitElement {
       }
 
       .value-input {
-        width: 30px;
+        width: 35px;
         padding: 4px 4px 4px;
         background: var(--primary-background-color);
         border: 2px solid var(--tpc-elements-background-color);

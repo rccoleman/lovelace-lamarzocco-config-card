@@ -19,9 +19,10 @@ import { Partial } from './partials';
 import { CardSettingsType, Layout, ValueRangeCardConfig, ValueType, Models } from './types';
 import { PrewBrewCard } from './prebrew-card';
 import { AutoOnOffCard } from './autoonoff-card';
+import { DoseCard } from './dose-card';
 
 console.info(
-  `%c  VALU-RANGE-CARD  \n%c  Version ${CARD_VERSION}    `,
+  `%c  VALUE-RANGE-CARD  \n%c  Version ${CARD_VERSION}    `,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray'
 );
@@ -105,14 +106,28 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
     }
 
+    if (
+      this.config.card_type == CardSettingsType.DOSE &&
+      (this.entity.attributes[MODEL_NAME] == Models.GS3_MP ||
+        this.entity.attributes[MODEL_NAME] == Models.LM)
+    ) {
+      return Partial.error('Dose card is not available for the GS3 MP or Linea Mini', this.config);
+    }
+
     // Create objects on first run
     if (typeof this.valueRangeList === 'undefined') {
       this.valueRangeList = [];
 
-      this.cardType =
-        this.config.card_type == CardSettingsType.AUTO_ON_OFF
-          ? new AutoOnOffCard(this.hass, this.valueRangeList, this.entity)
-          : new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
+      switch (this.config.card_type) {
+        case CardSettingsType.AUTO_ON_OFF:
+          this.cardType = new AutoOnOffCard(this.hass, this.valueRangeList, this.entity);
+          break;
+        case CardSettingsType.PREBREW:
+          this.cardType = new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
+          break;
+        case CardSettingsType.DOSE:
+          this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
+      }
 
       for (let i = 0; i < this.cardType.numValues; i++) {
         const valueRange = new ValueRange(
@@ -144,11 +159,15 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
             @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
             @update=${this.onValueInputChange}
         ></value-unit>
-        <value-unit
-            .unit=${valueRange.value_end}
-            @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
-            @update=${this.onValueInputChange}
-        ></value-unit>
+        ${
+          valueRange.value_end != undefined
+            ? html`<value-unit
+                .unit=${valueRange.value_end}
+                @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
+                @update=${this.onValueInputChange}
+              ></value-unit>`
+            : ''
+        }
         </div>
     </div></div>`
         )}
@@ -182,18 +201,20 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
   }
 
   private adjustMinMax(valueRange: ValueRange): void {
-    if (valueRange && this.cardType.linkStartEnd) {
+    if (valueRange && this.cardType.linkStartEnd && valueRange.value_end != undefined) {
       valueRange.value_start.maxValue = valueRange.value_end.value - 1;
       valueRange.value_end.minValue = valueRange.value_start.value + 1;
     }
   }
 
   private onEnableDisable(event: CustomEvent, valueRange: ValueRange): void {
-    event = event;
-    valueRange.enabled = !valueRange.enabled;
+    if (this.cardType.funcToggle != undefined) {
+      event = event;
+      valueRange.enabled = !valueRange.enabled;
 
-    this.setButtonColors(valueRange);
-    this.cardType.funcToggle(valueRange);
+      this.setButtonColors(valueRange);
+      this.cardType.funcToggle(valueRange);
+    }
   }
 
   findValueRange(label: string): ValueRange | undefined {
@@ -215,12 +236,14 @@ export class ValueRangeCard extends LitElement implements LovelaceCard {
       const valueUnit =
         valueType === ValueType.START ? valueRange.value_start : valueRange.value_end;
 
-      const orig_value = valueUnit.value;
-      valueUnit.stepUpdate(event.detail.direction);
+      if (valueUnit) {
+        const orig_value = valueUnit.value;
+        valueUnit.stepUpdate(event.detail.direction);
 
-      if (orig_value != valueUnit.value) {
-        this.adjustMinMax(valueRange);
-        this.cardType.funcSet(event);
+        if (orig_value != valueUnit.value) {
+          this.adjustMinMax(valueRange);
+          this.cardType.funcSet(event);
+        }
       }
     }
   }

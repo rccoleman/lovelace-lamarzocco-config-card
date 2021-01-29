@@ -54,13 +54,13 @@ export class PrewBrewCard extends CardType {
       'Calling set_prebrew_times service with %d, %s, %s',
       index,
       valueRange.value_start.toString(),
-      valueRange.value_end.toString()
+      valueRange.value_end?.toString()
     );
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_prebrew_times', {
       key: index,
       seconds_on: valueRange.value_start.toString(),
-      seconds_off: valueRange.value_end.toString(),
+      seconds_off: valueRange.value_end?.toString(),
     });
 
     // return Promise.resolve(undefined);
