@@ -16,7 +16,7 @@ export class Partial {
   }
 
   static headerName(title: string): TemplateResult {
-    return html`<div class="lamarzocco-config-header">${title}</div>`;
+    return html`<div class="lmcc-header">${title}</div>`;
   }
 
   static nestedName(name: string, entity: HassEntity): TemplateResult {

@@ -59,21 +59,19 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     );
   }
 
-  private get hasNameInside(): boolean {
-    return (
-      Boolean(this.name) &&
-      Boolean(this.config.hide?.name) === false &&
-      (this.config.layout?.name === Layout.Name.INSIDE || Boolean(this.config.layout?.embedded))
-    );
-  }
-
   private get name(): string | undefined {
     return this.config.name || this.entity?.attributes.friendly_name;
   }
 
+  private get haCardClass(): ClassInfo {
+    return {
+      embedded: this.isEmbedded,
+    };
+  }
+
   private get rowClass(): ClassInfo {
     return {
-      'lamarzocco-config-row': true,
+      'lmcc-row': true,
       'with-header-name': this.hasNameInHeader,
       embedded: this.isEmbedded,
     };
@@ -81,13 +79,13 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
 
   private get controlClass(): ClassInfo {
     return {
-      'lamarzocco-config-control': true,
+      'lmcc-control': true,
     };
   }
 
   private get buttonLabelClass(): ClassInfo {
     return {
-      'lamarzocco-config-button-label': true,
+      'lmcc-button-label': true,
     };
   }
 
@@ -144,9 +142,9 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       this.setButtonColors(valueRange);
     }
 
-    return html` ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
-      <ha-card class=${classMap(this.rowClass)}>
-        ${this.hasNameInside ? Partial.nestedName(this.name!, this.entity) : ''}
+    return html` <ha-card class=${classMap(this.haCardClass)}>
+      ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
+      <div class=${classMap(this.rowClass)}>
         ${repeat(
           this.valueRangeList,
           (valueRange) => html`
@@ -172,7 +170,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         </div>
     </div></div>`
         )}
-      </ha-card>`;
+      </div>
+    </ha-card>`;
   }
 
   setConfig(config: LaMarzoccoConfigCardConfig): void {
@@ -261,6 +260,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         --lmcc-text-color: var(--lamarzocco-config-text-color, #fff);
         --lmcc-accent-color: var(--lamarzocco-config-accent-color, var(--primary-color));
         --lmcc-off-color: var(--lamarzocco-config-off-color, var(--disabled-text-color));
+        --lmcc-border-color: var(--lamarzocco-config-border-color, var(--primary-color));
 
         --lmcc-border-radius: var(
           --lamarzocco-config-border-radius,
@@ -272,7 +272,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         box-shadow: none;
       }
 
-      .lamarzocco-config-header {
+      .lmcc-header {
         padding: 0px;
         color: var(--lmcc-text-color);
         background-color: var(--lmcc-elements-background-color);
@@ -282,54 +282,53 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         text-align: center;
       }
 
-      .lamarzocco-config-row {
+      .lmcc-row {
         display: flex;
         flex-direction: row;
         align-items: center;
         padding: 2px;
-        justify-content: center;
       }
 
-      .lamarzocco-config-control {
+      .lmcc-control {
         display: flex;
         flex-direction: column;
         align-items: center;
         padding: 4px;
       }
 
-      .lamarzocco-config-button-label {
+      .lmcc-button-label {
         background-color: var(--primary-background-color);
         color: var(--lmcc-text-color);
         border: 2px solid var(--success-color);
         font-weight: bolder;
       }
 
-      .lamarzocco-config-row.embedded {
+      .lmcc-row.embedded {
         padding: 2;
         justify-content: center;
       }
 
-      .lamarzocco-config-row.with-header-name {
+      .lmcc-row.with-header-name {
         padding: 6px 6px 6px;
         justify-content: center;
       }
 
-      .lamarzocco-config-content {
+      .lmcc-content {
         display: flex;
         flex-direction: row;
         align-items: center;
         flex: 1 0 auto;
       }
 
-      .lamarzocco-config-content.layout-left {
+      .lmcc-content.layout-left {
         justify-content: flex-start;
       }
 
-      .lamarzocco-config-content.layout-center {
+      .lmcc-content.layout-center {
         justify-content: center;
       }
 
-      .lamarzocco-config-content.layout-right {
+      .lmcc-content.layout-right {
         justify-content: flex-end;
       }
 
@@ -348,9 +347,5 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     return {
       entity: cardEntity || 'switch.buzz_auto_on_off',
     };
-  }
-
-  static getConfigElement(): LovelaceCard {
-    return document.createElement('lamarzocco-config-card-editor') as LovelaceCard;
   }
 }
