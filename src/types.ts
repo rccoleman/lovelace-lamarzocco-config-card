@@ -2,12 +2,7 @@ import { LovelaceCardConfig } from 'custom-card-helpers';
 export interface LaMarzoccoConfigCardConfig extends LovelaceCardConfig {
   entity: string;
   name: string;
-  layout: LaMarzoccoConfigLayoutConfig;
   hide: LaMarzoccoConfigHideConfig;
-}
-export interface LaMarzoccoConfigLayoutConfig {
-  name: Layout.Name;
-  embedded: boolean;
 }
 
 export interface ValueDataType {
@@ -15,12 +10,6 @@ export interface ValueDataType {
   attrStart: string;
   attrEnd: string | undefined;
   attrEnabled: string | undefined;
-}
-export namespace Layout {
-  export enum Name {
-    HEADER = 'header',
-    INSIDE = 'inside',
-  }
 }
 
 export interface LaMarzoccoConfigHideConfig {
