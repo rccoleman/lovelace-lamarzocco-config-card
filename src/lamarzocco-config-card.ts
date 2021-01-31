@@ -250,7 +250,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
 
   static get styles(): CSSResult {
     return css`
-      :host {
+      ha-card {
         --lmcc-elements-background-color: var(
           --lamarzocco-config-elements-background-color,
           var(--primary-color)
