@@ -2,13 +2,13 @@
 
 ## Overview
 
-This is a card for [Home Assistant](https://www.home-assistant.io/)'s [Lovelace UI](https://www.home-assistant.io/lovelace) that can be used to display and configure settings for network-connected La Marzocco espresso machines.
+This is a card for [Home Assistant](https://www.home-assistant.io/)'s [Lovelace UI](https://www.home-assistant.io/lovelace) that can be used to display and configure settings for network-connected La Marzocco espresso machines. It requires the La Marzocco custom component, available [here.](https://github.com/rccoleman/lamarzocco)
 
 ## Installation
 
 ### HACS
 
-Install using [HACS](https://hacs.xyz) and add the following to your config:
+Install using [HACS](https://hacs.xyz) by adding `https://github.com/rccoleman/lovelace-lamarzocco-config-card` as a custom respository, installing the card, and adding the following to your config:
 
 ```yaml
 resources:
@@ -28,75 +28,148 @@ resources:
 
 ## Usage
 
-## Examples
+This card requires that the [La Marzocco custom integration](https://github.com/rccoleman/lamarzocco) has been installed and configured.
 
-### Default config - card name shown, 24 hour mode
+This card supports 3 different card types -
 
-![Default theme with card name](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/default_with_name.png)
+- Auto on/off hours (`auto`)
+- Prebrew on/off times (`prebrew`)
+- Dose in pulses (~0.5ml) (`dose`)
+
+The machine model is taken into account to determine whether a card type is supported (`dose` is only supported for GS3 AV, for example) or to configure card contents (`prebrew` only displays a single value for the Linea Mini).
+
+### Auto On/Off
+
+Use `card_type: auto` for the Auto On/Off card variant.
+
+Each day of the week in the Auto On/Off variant is a button that toggles auto on/off for that day of the week.
+
+The values represent hours in the day, with the first number indicating the hour that the machine should turn on and the second number indicating the hour that it should turn off. Both values are based on a 24-hour clock and will accept numbers in the range of 0-23, with the constraint that the "on" time must be lower/earlier than the "off" time.
+
+### Prebrew
+
+Use `card_type: prebrew` for the Prebrew card variant.
+
+Prebrewing can only be enabled or disabled at the machine level (not per key), and each `Key #` header in the Prebrew variant is a button that enables or disables for the machine. Clicking one button will toggle the rest as well to indicate the over all state for the machine.
+
+The values represent the following:
+
+- The first value is the number of seconds that the pump should run when a shot is initiated
+- The second value is the number of seconds that the pump should turn off following the first time interval before turning back on for the remainder of the shot.
+
+### Dose
+
+Use `card_type: dose` for the Dose card variant.
+
+The Dose card variant has no toggle functionality and clicking on the `Key #` headers does nothing.
+
+The values represent the volume of water to dispense for each front-panel key in pulses, each roughly 0.5ml.
+
+## Default configuration
+
+### Auto On/Off Hours
+
+![Auto On/Off Hours](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/AutoOnOff-default.png)
+
+YAML config:
 
 ```yaml
-type: 'custom:time-picker-card'
-entity: input_datetime.alarm_time
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_auto_on_off
+  card_type: auto
 ```
 
-### Custom config - hidden card name, 12 hour mode
+### Prebrew on/off times
 
-![Default theme with no card name](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/default_without_name.png)
+![Prebrew On/Off Hours](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Prebrew-default.png)
+
+YAML config:
 
 ```yaml
-type: 'custom:time-picker-card'
-entity: input_datetime.alarm_time
-hour_mode: 12
-hide:
-  name: true
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_prebrew
+  card_type: prebrew
 ```
 
-### Custom config - hidden card name, 12 hour mode with a "single" hour mode picker
+### Dose (only for GS3 AV)
 
-![Default theme with single hour mode](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/single_hour_mode.png)
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Dose-default.png)
+
+YAML config:
 
 ```yaml
-type: 'custom:time-picker-card'
-entity: input_datetime.alarm_time
-hour_mode: 12
-layout:
-  hour_mode: single
-hide:
-  name: true
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_main
+  card_type: dose
 ```
 
-### Custom config - card name inside card and controls aligned right
+## Customized cards
 
-![Default theme with single hour mode](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/name_inside.png)
+These are examples of each card variant with some additional styling using the [`card-mod` plugin](https://github.com/thomasloven/lovelace-card-mod)
+
+### Auto On/Off Hours
+
+![Auto On/Off Hours](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/AutoOnOff.png)
+
+YAML config:
 
 ```yaml
-type: 'custom:time-picker-card'
-entity: input_datetime.alarm_time
-layout:
-  name: inside
-  align_controls: right
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_auto_on_off
+  card_type: auto
+  name: Auto On/Off Hours
+  style: |
+    ha-card {
+      background-color: var(--primary-background-color);
+      --lamarzocco-config-elements-background-color: var(--primary-background-color);
+    }
 ```
 
-### With a custom lovelace theme
+### Prebrew on/off times
 
-![Custom theme](https://raw.githubusercontent.com/GeorgeSG/lovelace-time-picker-card/master/examples/custom.png)
+![Prebrew On/Off Hours](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Prebrew.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_prebrew
+  card_type: prebrew
+  name: Prebrew Times
+  style: |
+    ha-card {
+      background-color: var(--primary-background-color);
+      --lamarzocco-config-elements-background-color: var(--primary-background-color);
+    }
+```
+
+### Dose (only for GS3 AV)
+
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Dose.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  entity: switch.buzz_main
+  card_type: dose
+  name: Dose
+  style: |
+    ha-card {
+      background-color: var(--primary-background-color);
+      --lamarzocco-config-elements-background-color: var(--primary-background-color);
+    }
+```
 
 ## Options
 
-| Name   | Type   | Requirement  | Description                                                                                               | Default                  |
-| ------ | ------ | ------------ | --------------------------------------------------------------------------------------------------------- | ------------------------ |
-| type   | string | **Required** | `custom:time-picker-card`                                                                                 |                          |
-| entity | string | **Required** | [Input Datetime](https://www.home-assistant.io/integrations/input_datetime/) entity with `has_time: true` |                          |
-| name   | string | **Optional** | Card name                                                                                                 | Entity's `friendly_name` |
-| layout | object | **Optional** | Card Layout configuration                                                                                 | `none`                   |
-| hide   | object | **Optional** | Hide object                                                                                               | `none`                   |
-
-### Layout Object
-
-| Name     | Value              | Requirement  | Description                                                                | Default  |
-| -------- | ------------------ | ------------ | -------------------------------------------------------------------------- | -------- |
-| name     | `header`, `inside` | **Optional** | Whether to show the name as a header or inside the card                    | `header` |
-| embedded | boolean            | **Optional** | Render with embedded style - disables padding, box shadow, and card header | `false`  |
+| Name      | Type   | Requirement  | Description                                                                                                                                                                                                                                                                     | Default                  |
+| --------- | ------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
+| type      | string | **Required** | `custom:lamarzocco-config-card`                                                                                                                                                                                                                                                 | None                     |
+| entity    | string | **Required** | Entity from the La Marzocco integration. Must be the appropriate entity for the card being selected: <ul><li>`switch.<machine_name>_auto_on_off` (for Auto On/Off)</li><li> `switch.<machine_name>_prebrew` (for Prebrew)</li><li>`switch.<machine_name>_main` (for Dose) </li> | None                     |
+| card_type | string | **Required** | Must be one of `auto`, `prebrew`, or `dose`                                                                                                                                                                                                                                     | None                     |
+| name      | string | **Optional** | Card name                                                                                                                                                                                                                                                                       | Entity's `friendly_name` |
+| hide      | object | **Optional** | Hide object                                                                                                                                                                                                                                                                     | None                     |
 
 ### Hide Object
 
@@ -106,22 +179,13 @@ layout:
 
 ### Theme Variables
 
-Time Picker Card will automatically pick up colors from your lovelace theme, but if you want to customize some of them,
-you can use the following variables in your theme's config file:
+La Marzocco Config Card will automatically pick up colors from your lovelace theme, but if you want to customize some of them,
+you can use the following variables in your theme's config file or with [card-mod](https://github.com/thomasloven/lovelace-card-mod) styles:
 
-| Name                                  | Default                        | Description                            |
-| ------------------------------------- | ------------------------------ | -------------------------------------- |
-| time-picker-elements-background-color | `var(--primary-color)`         | Background color for header and inputs |
-| time-picker-icon-color                | `var(--primary-text-color)`    | Arrow color                            |
-| time-picker-text-color                | `white`                        | Text color                             |
-| time-picker-accent-color              | `var(--primary-color)`         | AM / PM active color                   |
-| time-picker-off-color                 | `var(--disabled-text-color)`   | AM / PM inactive color                 |
-| time-picker-border-radius             | `var(--ha-card-border-radius)` | Border radius of the card              |
-
-[maintenance-link]: https://github.com/GeorgeSG/lovelace-time-picker-card
-[license-shield]: https://img.shields.io/github/license/GeorgeSG/lovelace-time-picker-card?color=brightgreen
-[license-link]: https://github.com/GeorgeSG/lovelace-time-picker-card/blob/master/LICENSE
-[github-icon]: http://i.imgur.com/9I6NRUm.png
-[github-link]: https://github.com/GeorgeSG/
-[twitter-icon]: http://i.imgur.com/wWzX9uB.png
-[twitter-link]: https://twitter.com/georgesg92
+| Name                                        | Default                        | Description                            |
+| ------------------------------------------- | ------------------------------ | -------------------------------------- |
+| lamarzocco-config-elements-background-color | `var(--primary-color)`         | Background color for header and inputs |
+| lamarzocco-config-icon-color                | `var(--primary-text-color)`    | Arrow color                            |
+| lamarzocco-config-text-color                | `white`                        | Text color                             |
+| lamarzocco-config-border-radius             | `var(--ha-card-border-radius)` | Border radius of the card              |
+| lamarzocco-config-border-color              | `var(--primary-color)`         | Border color for the input box         |
