@@ -317,12 +317,21 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  static getEntityFromAttr(hass: HomeAssistant, attr: string): string {
+  static getEntityFromCardType(hass: HomeAssistant, cardType: string): string {
     let entity_id = '';
+
+    const typeToAttr = {
+      [CardSettingsType.AUTO_ON_OFF]: 'sun_auto',
+      [CardSettingsType.PREBREW]: 'prebrewing_ton_k1',
+      [CardSettingsType.DOSE]: 'dose_k1',
+    };
 
     for (entity_id in hass.states) {
       const entity = hass.states[entity_id];
-      if (attr in entity.attributes && entity.attributes.attribution == 'La Marzocco') {
+      if (
+        typeToAttr[cardType] in entity.attributes &&
+        entity.attributes.attribution == 'La Marzocco'
+      ) {
         break;
       }
     }
@@ -332,25 +341,21 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
 
   static getStubConfig(hass: HomeAssistant): Omit<LaMarzoccoConfigCardConfig, 'type'> {
     return {
-      entity: this.getEntityFromAttr(hass, 'sun_auto') || 'switch.example_auto_on_off',
-      card_type: 'auto',
+      entity:
+        this.getEntityFromCardType(hass, CardSettingsType.AUTO_ON_OFF) ||
+        'switch.example_auto_on_off',
+      card_type: CardSettingsType.AUTO_ON_OFF,
       name: 'Auto On/Off Hours',
     };
   }
 
-  configChanged(newConfig): void {
-    console.log('Config changed');
-    console.log(newConfig);
+  configChanged(newConfig: LaMarzoccoConfigCardConfig): void {
     const event = new CustomEvent('config-changed', {
       bubbles: true,
       composed: true,
       detail: { config: newConfig },
     });
-    this.config = newConfig;
-    this.valueRangeList = [];
 
     this.dispatchEvent(event);
   }
 }
-
-customElements.define('larmarzocco-config-card-editor', LaMarzoccoConfigCard);
