@@ -1,5 +1,5 @@
 import { HomeAssistant, LovelaceCard } from 'custom-card-helpers';
-import { HassEntity } from 'home-assistant-js-websocket';
+import { HassEntity, Connection } from 'home-assistant-js-websocket';
 import {
   css,
   CSSResult,
@@ -16,7 +16,13 @@ import { CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
 import { CardType } from './card-type';
 import { ValueRange } from './value-range';
 import { Partial } from './partials';
-import { CardSettingsType, LaMarzoccoConfigCardConfig, ValueType, Models } from './types';
+import {
+  CardSettingsType,
+  LaMarzoccoConfigCardConfig,
+  ValueType,
+  Models,
+  EntityRegistryEntry,
+} from './types';
 import { PrewBrewCard } from './prebrew-card';
 import { AutoOnOffCard } from './autoonoff-card';
 import { DoseCard } from './dose-card';
@@ -74,33 +80,63 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     };
   }
 
+  fetchEntityRegistry = (conn: Connection): Promise<EntityRegistryEntry[]> =>
+    conn.sendMessagePromise({
+      type: 'config/entity_registry/list',
+    });
+
+  findEntityFromCardType(hass: HomeAssistant, cardType: string): void {
+    this.fetchEntityRegistry(hass.connection).then(
+      (resp) => {
+        const typeToAttr = {
+          [CardSettingsType.AUTO_ON_OFF]: 'sun_auto',
+          [CardSettingsType.PREBREW]: 'prebrewing_ton_k1',
+          [CardSettingsType.DOSE]: 'dose_k1',
+        };
+
+        for (let i = 0; i < resp.length; i++) {
+          if (
+            resp[i].platform == 'lamarzocco' &&
+            typeToAttr[cardType] in hass.states[resp[i].entity_id].attributes
+          ) {
+            this.hassEntity = hass.states[resp[i].entity_id];
+            this.requestUpdate();
+          }
+        }
+      },
+      (err) => {
+        console.error('Message failed!', err);
+      }
+    );
+  }
+
   render(): TemplateResult | null {
-    const entity = LaMarzoccoConfigCard.getEntityFromCardType(this.hass, this.config.card_type);
-
-    if (entity === undefined) {
-      return Partial.error('Entity not found', this.config);
-    }
-
-    this.hassEntity = entity;
-
-    if (
-      this.config.card_type == CardSettingsType.PREBREW &&
-      this.entity.attributes[MODEL_NAME] == Models.GS3_MP
-    ) {
-      return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
-    }
-
-    if (
-      this.config.card_type == CardSettingsType.DOSE &&
-      (this.entity.attributes[MODEL_NAME] == Models.GS3_MP ||
-        this.entity.attributes[MODEL_NAME] == Models.LM)
-    ) {
-      return Partial.error('Dose card is not available for the GS3 MP or Linea Mini', this.config);
-    }
-
     // Create objects on first run
     if (this.valueRangeList.length === 0) {
-      this.valueRangeList = [];
+      // Find the entity based on the card type
+      this.findEntityFromCardType(this.hass, this.config.card_type);
+
+      if (this.entity === undefined) {
+        return html``;
+      }
+
+      if (
+        this.config.card_type == CardSettingsType.PREBREW &&
+        this.entity.attributes[MODEL_NAME] == Models.GS3_MP
+      ) {
+        return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
+      }
+
+      if (
+        this.config.card_type == CardSettingsType.DOSE &&
+        (this.entity.attributes[MODEL_NAME] == Models.GS3_MP ||
+          this.entity.attributes[MODEL_NAME] == Models.LM)
+      ) {
+        return Partial.error(
+          'Dose card is not available for the GS3 MP or Linea Mini',
+          this.config
+        );
+      }
 
       switch (this.config.card_type) {
         case CardSettingsType.AUTO_ON_OFF:
@@ -305,41 +341,10 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  static getEntityFromCardType(hass: HomeAssistant, cardType: string): HassEntity | undefined {
-    let entity: HassEntity;
-
-    const typeToAttr = {
-      [CardSettingsType.AUTO_ON_OFF]: 'sun_auto',
-      [CardSettingsType.PREBREW]: 'prebrewing_ton_k1',
-      [CardSettingsType.DOSE]: 'dose_k1',
-    };
-
-    for (const entity_id in hass.states) {
-      entity = hass.states[entity_id];
-      if (
-        typeToAttr[cardType] in entity.attributes &&
-        entity.attributes.attribution == 'La Marzocco'
-      )
-        return entity;
-    }
-
-    return;
-  }
-
   static getStubConfig(): Omit<LaMarzoccoConfigCardConfig, 'type'> {
     return {
       card_type: CardSettingsType.AUTO_ON_OFF,
       name: 'Auto On/Off Hours',
     };
-  }
-
-  configChanged(newConfig: LaMarzoccoConfigCardConfig): void {
-    const event = new CustomEvent('config-changed', {
-      bubbles: true,
-      composed: true,
-      detail: { config: newConfig },
-    });
-
-    this.dispatchEvent(event);
   }
 }

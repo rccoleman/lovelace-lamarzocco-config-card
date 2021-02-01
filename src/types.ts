@@ -38,3 +38,14 @@ export enum Models {
   GS3_MP = 'GS3 MP',
   LM = 'Linea Mini',
 }
+
+export interface EntityRegistryEntry {
+  entity_id: string;
+  name: string;
+  icon?: string;
+  platform: string;
+  config_entry_id?: string;
+  device_id?: string;
+  area_id?: string;
+  disabled_by: string | null;
+}
