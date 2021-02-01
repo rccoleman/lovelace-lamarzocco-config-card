@@ -1,4 +1,4 @@
-import { computeDomain, HomeAssistant, LovelaceCard } from 'custom-card-helpers';
+import { HomeAssistant, LovelaceCard } from 'custom-card-helpers';
 import { HassEntity } from 'home-assistant-js-websocket';
 import {
   css,
@@ -12,7 +12,7 @@ import {
 import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
-import { ENTITY_DOMAIN, CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
+import { CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
 import { CardType } from './card-type';
 import { ValueRange } from './value-range';
 import { Partial } from './partials';
@@ -41,10 +41,10 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
   private cardType!: CardType;
   private valueRangeList: ValueRange[] = [];
-  private entity_id!: string;
+  private hassEntity!: HassEntity;
 
   private get entity(): HassEntity {
-    return this.hass.states[this.config.entity];
+    return this.hassEntity;
   }
 
   private get hasNameInHeader(): boolean {
@@ -75,13 +75,13 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   }
 
   render(): TemplateResult | null {
-    if (!this.entity) {
+    const entity = LaMarzoccoConfigCard.getEntityFromCardType(this.hass, this.config.card_type);
+
+    if (entity === undefined) {
       return Partial.error('Entity not found', this.config);
     }
 
-    if (computeDomain(this.entity.entity_id) !== ENTITY_DOMAIN) {
-      return Partial.error(`You must set an ${ENTITY_DOMAIN} entity`, this.config);
-    }
+    this.hassEntity = entity;
 
     if (
       this.config.card_type == CardSettingsType.PREBREW &&
@@ -111,14 +111,6 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           break;
         case CardSettingsType.DOSE:
           this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
-      }
-
-      // Make sure we're using the right entity for the card type
-      if (
-        !(this.cardType.valueData[0].attrStart in this.entity.attributes) ||
-        this.entity.attributes.attribution != 'La Marzocco'
-      ) {
-        return Partial.error('Invalid entity provided', this.config);
       }
 
       for (let i = 0; i < this.cardType.numValues; i++) {
@@ -168,10 +160,6 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   setConfig(config: LaMarzoccoConfigCardConfig): void {
     if (!config) {
       throw new Error('Invalid configuration');
-    }
-
-    if (!config.entity) {
-      throw new Error('You must set an entity');
     }
 
     if (
@@ -317,8 +305,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  static getEntityFromCardType(hass: HomeAssistant, cardType: string): string {
-    let entity_id = '';
+  static getEntityFromCardType(hass: HomeAssistant, cardType: string): HassEntity | undefined {
+    let entity: HassEntity;
 
     const typeToAttr = {
       [CardSettingsType.AUTO_ON_OFF]: 'sun_auto',
@@ -326,24 +314,20 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       [CardSettingsType.DOSE]: 'dose_k1',
     };
 
-    for (entity_id in hass.states) {
-      const entity = hass.states[entity_id];
+    for (const entity_id in hass.states) {
+      entity = hass.states[entity_id];
       if (
         typeToAttr[cardType] in entity.attributes &&
         entity.attributes.attribution == 'La Marzocco'
-      ) {
-        break;
-      }
+      )
+        return entity;
     }
 
-    return entity_id;
+    return;
   }
 
-  static getStubConfig(hass: HomeAssistant): Omit<LaMarzoccoConfigCardConfig, 'type'> {
+  static getStubConfig(): Omit<LaMarzoccoConfigCardConfig, 'type'> {
     return {
-      entity:
-        this.getEntityFromCardType(hass, CardSettingsType.AUTO_ON_OFF) ||
-        'switch.example_auto_on_off',
       card_type: CardSettingsType.AUTO_ON_OFF,
       name: 'Auto On/Off Hours',
     };

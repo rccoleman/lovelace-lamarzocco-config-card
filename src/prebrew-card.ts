@@ -1,4 +1,4 @@
-import { ENTITY_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from './const';
+import { SWITCH_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from './const';
 import { ValueRange } from './value-range';
 import { CardType } from './card-type';
 import { Models } from './types';
@@ -79,7 +79,7 @@ export class PrewBrewCard extends CardType {
       vr.enabled = valueRange.enabled;
     }
 
-    return this.hass.callService(ENTITY_DOMAIN, service, {
+    return this.hass.callService(SWITCH_DOMAIN, service, {
       entity_id: this.entity.entity_id,
     });
 

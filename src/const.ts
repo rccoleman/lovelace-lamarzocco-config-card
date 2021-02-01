@@ -1,7 +1,7 @@
 import * as pkg from '../package.json';
 import { CardSettingsType } from './types';
 
-export const ENTITY_DOMAIN = 'switch';
+export const SWITCH_DOMAIN = 'switch';
 export const SERVICE_DOMAIN = 'lamarzocco';
 
 export const CARD_VERSION = pkg.version;
