@@ -2,6 +2,7 @@ import { LovelaceCardConfig } from 'custom-card-helpers';
 export interface LaMarzoccoConfigCardConfig extends LovelaceCardConfig {
   entity: string;
   name: string;
+  card_type: string;
   hide: LaMarzoccoConfigHideConfig;
 }
 

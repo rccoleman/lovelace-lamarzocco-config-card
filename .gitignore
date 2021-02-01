@@ -4,3 +4,4 @@ copy
 .vscode/settings.json
 src/test.txt
 examples/.DS_Store
+src/examples.ts

@@ -31,6 +31,7 @@ window.customCards = window.customCards || [];
 window.customCards.push({
   type: 'lamarzocco-config-card',
   name: 'La Marzocco Config Card',
+  preview: true,
   description:
     'A card that allows configuration of an network-connected La Marzocco espresso machine.',
 });
@@ -39,8 +40,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
   private cardType!: CardType;
-
-  private valueRangeList!: ValueRange[];
+  private valueRangeList: ValueRange[] = [];
+  private entity_id!: string;
 
   private get entity(): HassEntity {
     return this.hass.states[this.config.entity];
@@ -98,7 +99,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     }
 
     // Create objects on first run
-    if (typeof this.valueRangeList === 'undefined') {
+    if (this.valueRangeList.length === 0) {
       this.valueRangeList = [];
 
       switch (this.config.card_type) {
@@ -110,6 +111,14 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           break;
         case CardSettingsType.DOSE:
           this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
+      }
+
+      // Make sure we're using the right entity for the card type
+      if (
+        !(this.cardType.valueData[0].attrStart in this.entity.attributes) ||
+        this.entity.attributes.attribution != 'La Marzocco'
+      ) {
+        return Partial.error('Invalid entity provided', this.config);
       }
 
       for (let i = 0; i < this.cardType.numValues; i++) {
@@ -133,10 +142,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           this.valueRangeList,
           (valueRange) => html`
         <div class=${classMap(this.controlClass)}>
-        <button class=${classMap(this.buttonLabelClass)} @click="${(e: CustomEvent) =>
-            this.onEnableDisable(e, valueRange)}}" id=${valueRange.label}>${
-            valueRange.label
-          }</button>
+        <button class=${classMap(this.buttonLabelClass)} @click="${() =>
+            this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
         <value-unit
             .unit=${valueRange.value_start}
             @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
@@ -167,6 +174,15 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       throw new Error('You must set an entity');
     }
 
+    if (
+      config.card_type != CardSettingsType.AUTO_ON_OFF &&
+      config.card_type != CardSettingsType.PREBREW &&
+      config.card_type != CardSettingsType.DOSE
+    ) {
+      throw new Error('Invalid card type');
+    }
+
+    this.valueRangeList = [];
     this.config = config;
   }
 
@@ -191,9 +207,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     }
   }
 
-  private onEnableDisable(event: CustomEvent, valueRange: ValueRange): void {
+  private onEnableDisable(valueRange: ValueRange): void {
     if (this.cardType.funcToggle != undefined) {
-      event = event;
       valueRange.enabled = !valueRange.enabled;
 
       this.setButtonColors(valueRange);
@@ -302,14 +317,40 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     `;
   }
 
-  static getStubConfig(
-    _: HomeAssistant,
-    entities: Array<string>
-  ): Omit<LaMarzoccoConfigCardConfig, 'type'> {
-    const cardEntity = entities.find((entityId) => computeDomain(entityId) === ENTITY_DOMAIN);
+  static getEntityFromAttr(hass: HomeAssistant, attr: string): string {
+    let entity_id = '';
 
+    for (entity_id in hass.states) {
+      const entity = hass.states[entity_id];
+      if (attr in entity.attributes && entity.attributes.attribution == 'La Marzocco') {
+        break;
+      }
+    }
+
+    return entity_id;
+  }
+
+  static getStubConfig(hass: HomeAssistant): Omit<LaMarzoccoConfigCardConfig, 'type'> {
     return {
-      entity: cardEntity || 'switch.buzz_auto_on_off',
+      entity: this.getEntityFromAttr(hass, 'sun_auto') || 'switch.example_auto_on_off',
+      card_type: 'auto',
+      name: 'Auto On/Off Hours',
     };
   }
+
+  configChanged(newConfig): void {
+    console.log('Config changed');
+    console.log(newConfig);
+    const event = new CustomEvent('config-changed', {
+      bubbles: true,
+      composed: true,
+      detail: { config: newConfig },
+    });
+    this.config = newConfig;
+    this.valueRangeList = [];
+
+    this.dispatchEvent(event);
+  }
 }
+
+customElements.define('larmarzocco-config-card-editor', LaMarzoccoConfigCard);
