@@ -38,6 +38,10 @@ This card supports 3 different card types -
 
 The machine model is taken into account to determine whether a card type is supported (`dose` is only supported for GS3 AV, for example) or to configure card contents (`prebrew` only displays a single value for the Linea Mini).
 
+The card will automatically find the appropriate entity for the specified `card_type`, so there's no need to supply an `entity_id` in the card config.
+
+Adding the card from the Lovelace "+ Add Card" interface is supported, and the preview of the card will update automatically based on the specified YAML config. There's no support for graphical card editor at this time.
+
 ### Auto On/Off
 
 Use `card_type: auto` for the Auto On/Off card variant.
@@ -75,7 +79,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_auto_on_off
   card_type: auto
 ```
 
@@ -87,7 +90,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_prebrew
   card_type: prebrew
 ```
 
@@ -99,7 +101,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_main
   card_type: dose
 ```
 
@@ -115,7 +116,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_auto_on_off
   card_type: auto
   name: Auto On/Off Hours
   style: |
@@ -133,7 +133,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_prebrew
   card_type: prebrew
   name: Prebrew Times
   style: |
@@ -151,7 +150,6 @@ YAML config:
 
 ```yaml
 - type: 'custom:lamarzocco-config-card'
-  entity: switch.buzz_main
   card_type: dose
   name: Dose
   style: |
@@ -163,13 +161,12 @@ YAML config:
 
 ## Options
 
-| Name      | Type   | Requirement  | Description                                                                                                                                                                                                                                                                     | Default                  |
-| --------- | ------ | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------ |
-| type      | string | **Required** | `custom:lamarzocco-config-card`                                                                                                                                                                                                                                                 | None                     |
-| entity    | string | **Required** | Entity from the La Marzocco integration. Must be the appropriate entity for the card being selected: <ul><li>`switch.<machine_name>_auto_on_off` (for Auto On/Off)</li><li> `switch.<machine_name>_prebrew` (for Prebrew)</li><li>`switch.<machine_name>_main` (for Dose) </li> | None                     |
-| card_type | string | **Required** | Must be one of `auto`, `prebrew`, or `dose`                                                                                                                                                                                                                                     | None                     |
-| name      | string | **Optional** | Card name                                                                                                                                                                                                                                                                       | Entity's `friendly_name` |
-| hide      | object | **Optional** | Hide object                                                                                                                                                                                                                                                                     | None                     |
+| Name      | Type   | Requirement  | Description                                 | Default                  |
+| --------- | ------ | ------------ | ------------------------------------------- | ------------------------ |
+| type      | string | **Required** | `custom:lamarzocco-config-card`             | None                     |
+| card_type | string | **Required** | Must be one of `auto`, `prebrew`, or `dose` | None                     |
+| name      | string | **Optional** | Card name                                   | Entity's `friendly_name` |
+| hide      | object | **Optional** | Hide object                                 | None                     |
 
 ### Hide Object
 
