@@ -30,6 +30,7 @@ export enum CardSettingsType {
   AUTO_ON_OFF = 'auto',
   PREBREW = 'prebrew',
   DOSE = 'dose',
+  HOT_WATER_DOSE = 'hot_water_dose',
 }
 
 export enum Models {

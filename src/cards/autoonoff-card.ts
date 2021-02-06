@@ -1,6 +1,6 @@
-import { SERVICE_DOMAIN } from './const';
-import { ValueRange } from './value-range';
-import { CardType } from './card-type';
+import { SERVICE_DOMAIN } from '../const';
+import { ValueRange } from '../value-range';
+import { CardType } from '../card-type';
 
 export class AutoOnOffCard extends CardType {
   public float = false;

@@ -23,9 +23,10 @@ import {
   Models,
   EntityRegistryEntry,
 } from './types';
-import { PrewBrewCard } from './prebrew-card';
-import { AutoOnOffCard } from './autoonoff-card';
-import { DoseCard } from './dose-card';
+import { PrewBrewCard } from './cards/prebrew-card';
+import { AutoOnOffCard } from './cards/autoonoff-card';
+import { DoseCard } from './cards/dose-card';
+import { HotWaterDoseCard } from './cards/hotwater-dose-card';
 
 console.info(
   `%c  LA-MARZOCCO-CONFIG-CARD  \n%c  Version ${CARD_VERSION}    `,
@@ -92,6 +93,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           [CardSettingsType.AUTO_ON_OFF]: 'sun_auto',
           [CardSettingsType.PREBREW]: 'prebrewing_ton_k1',
           [CardSettingsType.DOSE]: 'dose_k1',
+          [CardSettingsType.HOT_WATER_DOSE]: 'dose_hot_water',
         };
 
         for (let i = 0; i < resp.length; i++) {
@@ -138,6 +140,16 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         );
       }
 
+      if (
+        this.config.card_type == CardSettingsType.HOT_WATER_DOSE &&
+        this.entity.attributes[MODEL_NAME] == Models.LM
+      ) {
+        return Partial.error(
+          'Hot water dose card is not available for the Linea Mini',
+          this.config
+        );
+      }
+
       switch (this.config.card_type) {
         case CardSettingsType.AUTO_ON_OFF:
           this.cardType = new AutoOnOffCard(this.hass, this.valueRangeList, this.entity);
@@ -147,6 +159,10 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           break;
         case CardSettingsType.DOSE:
           this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
+          break;
+        case CardSettingsType.HOT_WATER_DOSE:
+          this.cardType = new HotWaterDoseCard(this.hass, this.valueRangeList, this.entity);
+          break;
       }
 
       for (let i = 0; i < this.cardType.numValues; i++) {
@@ -201,7 +217,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     if (
       config.card_type != CardSettingsType.AUTO_ON_OFF &&
       config.card_type != CardSettingsType.PREBREW &&
-      config.card_type != CardSettingsType.DOSE
+      config.card_type != CardSettingsType.DOSE &&
+      config.card_type != CardSettingsType.HOT_WATER_DOSE
     ) {
       throw new Error('Invalid card type');
     }
@@ -324,7 +341,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       }
 
       .lmcc-row.with-header-name {
-        padding: 6px 6px 6px;
+        padding: 0px 0px 0px;
         justify-content: center;
       }
 
@@ -333,10 +350,6 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         flex-direction: row;
         align-items: center;
         flex: 1 0 auto;
-      }
-
-      .entity-name-inside {
-        margin-left: 16px;
       }
     `;
   }

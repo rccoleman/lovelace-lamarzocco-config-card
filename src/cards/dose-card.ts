@@ -1,5 +1,5 @@
-import { SERVICE_DOMAIN } from './const';
-import { CardType } from './card-type';
+import { SERVICE_DOMAIN } from '../const';
+import { CardType } from '../card-type';
 export class DoseCard extends CardType {
   public float = false;
   public minValue = 0;

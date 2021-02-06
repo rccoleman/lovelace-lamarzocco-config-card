@@ -1,7 +1,7 @@
-import { SWITCH_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from './const';
-import { ValueRange } from './value-range';
-import { CardType } from './card-type';
-import { Models } from './types';
+import { SWITCH_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from '../const';
+import { ValueRange } from '../value-range';
+import { CardType } from '../card-type';
+import { Models } from '../types';
 export class PrewBrewCard extends CardType {
   public float = true;
   public minValue = 0;
