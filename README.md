@@ -30,11 +30,12 @@ resources:
 
 This card requires that the [La Marzocco custom integration](https://github.com/rccoleman/lamarzocco) has been installed and configured.
 
-This card supports 3 different card types -
+This card supports 4 different card types -
 
 - Auto on/off hours (`auto`)
 - Prebrew on/off times (`prebrew`)
 - Dose in pulses (~0.5ml) (`dose`)
+- Hot Water Dose in seconds (`hot_water_dose`)
 
 The machine model is taken into account to determine whether a card type is supported (`dose` is only supported for GS3 AV, for example) or to configure card contents (`prebrew` only displays a single value for the Linea Mini).
 
@@ -69,6 +70,14 @@ The Dose card variant has no toggle functionality and clicking on the `Key #` he
 
 The values represent the volume of water to dispense for each front-panel key in pulses, each roughly 0.5ml.
 
+### Hot Water Dose
+
+Use `card_type: hot_water_dose` for the Hot Water Dose card variant.
+
+The Hot Water Dose card variant has no toggle functionality and clicking on the header does nothing.
+
+The values represent the number of seconds to dispense hot water using the front-panel button.  The default is 8s.
+
 ## Default configuration
 
 ### Auto On/Off Hours
@@ -102,6 +111,17 @@ YAML config:
 ```yaml
 - type: 'custom:lamarzocco-config-card'
   card_type: dose
+```
+
+### Hot Water Dose (only for GS3 AV and MP)
+
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/hot-water-dose-default.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  card_type: hot_water_dose
 ```
 
 ## Customized cards
@@ -159,14 +179,31 @@ YAML config:
     }
 ```
 
+### Hot Water Dose (only for GS3 AV and MP)
+
+![Hot Water Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/hot-water-dose-custom.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  card_type: hot_water_dose
+  name: Hot Water Dose
+  style: |
+    ha-card {
+      background-color: var(--primary-background-color);
+      --lamarzocco-config-elements-background-color: var(--primary-background-color);
+    }
+```
+
 ## Options
 
-| Name      | Type   | Requirement  | Description                                 | Default                  |
-| --------- | ------ | ------------ | ------------------------------------------- | ------------------------ |
-| type      | string | **Required** | `custom:lamarzocco-config-card`             | None                     |
-| card_type | string | **Required** | Must be one of `auto`, `prebrew`, or `dose` | None                     |
-| name      | string | **Optional** | Card name                                   | Entity's `friendly_name` |
-| hide      | object | **Optional** | Hide object                                 | None                     |
+| Name      | Type   | Requirement  | Description                                                   | Default                  |
+| --------- | ------ | ------------ | ------------------------------------------------------------- | ------------------------ |
+| type      | string | **Required** | `custom:lamarzocco-config-card`                               | None                     |
+| card_type | string | **Required** | Must be one of `auto`, `prebrew`, `dose`, or `hot_water_dose` | None                     |
+| name      | string | **Optional** | Card name                                                     | Entity's `friendly_name` |
+| hide      | object | **Optional** | Hide object                                                   | None                     |
 
 ### Hide Object
 
