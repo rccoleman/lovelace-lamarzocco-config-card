@@ -1,4 +1,5 @@
 # La Marzocco Config Card
+[![hacs_badge](https://img.shields.io/badge/HACS-Default-orange.svg)](https://github.com/custom-components/hacs)
 
 ## Overview
 
@@ -8,7 +9,13 @@ This is a card for [Home Assistant](https://www.home-assistant.io/)'s [Lovelace 
 
 ### HACS
 
-Install using [HACS](https://hacs.xyz) by adding `https://github.com/rccoleman/lovelace-lamarzocco-config-card` as a custom respository, installing the card, and adding the following to your config:
+This card is available in the default [HACS](https://hacs.xyz) repository, so you can install it this way:
+
+* Launch HACS and click "Frontend"
+* Click "+ Explore & Add Repositories" button in the lower-right corner of HACS
+* Search for "marzocco" and select the card that appears
+* Click "Install this repository"
+* Add the following to your configuration.yaml or ensure that the resource is added to Configuration->Lovelace Dashboards->Resources:
 
 ```yaml
 resources:
