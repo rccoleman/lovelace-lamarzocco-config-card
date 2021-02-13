@@ -9,7 +9,7 @@ import {
   property,
   TemplateResult,
 } from 'lit-element';
-import { repeat } from 'lit-html/directives/repeat.js';
+// import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
 import { CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
@@ -44,7 +44,8 @@ window.customCards.push({
 });
 @customElement('lamarzocco-config-card')
 export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
-  @property({ type: Object }) hass!: HomeAssistant;
+  private _hass!: HomeAssistant;
+  // @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
   private cardType!: CardType;
   private valueRangeList: ValueRange[] = [];
@@ -102,7 +103,6 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
             typeToAttr[cardType] in hass.states[resp[i].entity_id].attributes
           ) {
             this.hassEntity = hass.states[resp[i].entity_id];
-            this.requestUpdate();
           }
         }
       },
@@ -112,44 +112,17 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     );
   }
 
-  render(): TemplateResult | null {
+  private buildElements(): void {
+    if (!this.hass) return;
+
     // Create objects on first run
     if (this.valueRangeList.length === 0) {
       // Find the entity based on the card type
       this.findEntityFromCardType(this.hass, this.config.card_type);
 
-      if (this.entity === undefined) {
-        return html``;
-      }
+      if (!this.entity) return;
 
-      if (
-        this.config.card_type == CardSettingsType.PREBREW &&
-        this.entity.attributes[MODEL_NAME] == Models.GS3_MP
-      ) {
-        return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
-      }
-
-      if (
-        this.config.card_type == CardSettingsType.DOSE &&
-        (this.entity.attributes[MODEL_NAME] == Models.GS3_MP ||
-          this.entity.attributes[MODEL_NAME] == Models.LM)
-      ) {
-        return Partial.error(
-          'Dose card is not available for the GS3 MP or Linea Mini',
-          this.config
-        );
-      }
-
-      if (
-        this.config.card_type == CardSettingsType.HOT_WATER_DOSE &&
-        this.entity.attributes[MODEL_NAME] == Models.LM
-      ) {
-        return Partial.error(
-          'Hot water dose card is not available for the Linea Mini',
-          this.config
-        );
-      }
-
+      // Create elements
       switch (this.config.card_type) {
         case CardSettingsType.AUTO_ON_OFF:
           this.cardType = new AutoOnOffCard(this.hass, this.valueRangeList, this.entity);
@@ -179,33 +152,74 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       this.setButtonColors(valueRange);
     }
 
-    return html` <ha-card>
-      ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
-      <div class=${classMap(this.rowClass)}>
-        ${repeat(
-          this.valueRangeList,
-          (valueRange) => html`
-        <div class=${classMap(this.controlClass)}>
-        <button class=${classMap(this.buttonLabelClass)} @click="${() =>
-            this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
-        <value-unit
-            .unit=${valueRange.value_start}
-            @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
-            @update=${this.onValueInputChange}
-        ></value-unit>
-        ${
-          valueRange.value_end != undefined
-            ? html`<value-unit
-                .unit=${valueRange.value_end}
-                @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
-                @update=${this.onValueInputChange}
-              ></value-unit>`
-            : ''
-        }
-        </div>
-    </div></div>`
-        )}
+    this.requestUpdate();
+  }
+
+  set hass(hass: HomeAssistant) {
+    this._hass = hass;
+    this.buildElements();
+  }
+
+  get hass(): HomeAssistant {
+    return this._hass;
+  }
+
+  render(): TemplateResult | null {
+    if (this.entity === undefined) {
+      return html``;
+    }
+
+    if (
+      this.config.card_type == CardSettingsType.PREBREW &&
+      this.entity.attributes[MODEL_NAME] == Models.GS3_MP
+    ) {
+      return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
+    }
+
+    if (
+      this.config.card_type == CardSettingsType.DOSE &&
+      (this.entity.attributes[MODEL_NAME] == Models.GS3_MP ||
+        this.entity.attributes[MODEL_NAME] == Models.LM)
+    ) {
+      return Partial.error('Dose card is not available for the GS3 MP or Linea Mini', this.config);
+    }
+
+    if (
+      this.config.card_type == CardSettingsType.HOT_WATER_DOSE &&
+      this.entity.attributes[MODEL_NAME] == Models.LM
+    ) {
+      return Partial.error('Hot water dose card is not available for the Linea Mini', this.config);
+    }
+
+    const content: TemplateResult[] = [];
+
+    for (let index = 0; index < this.valueRangeList.length; index++) {
+      const valueRange = this.valueRangeList[index];
+      content.push(html`
+      <div class=${classMap(this.controlClass)}>
+      <button class=${classMap(this.buttonLabelClass)} @click="${() =>
+        this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
+      <value-unit
+          .unit=${valueRange.value_start}
+          @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
+          @update=${this.onValueInputChange}
+      ></value-unit>
+      ${
+        valueRange.value_end != undefined
+          ? html`<value-unit
+              .unit=${valueRange.value_end}
+              @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
+              @update=${this.onValueInputChange}
+            ></value-unit>`
+          : ''
+      }
       </div>
+      </div></div>`);
+    }
+
+    return html`<ha-card>
+      ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
+      <div class=${classMap(this.rowClass)}>${content}</div>
     </ha-card>`;
   }
 
@@ -225,6 +239,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
 
     this.valueRangeList = [];
     this.config = config;
+    this.buildElements();
   }
 
   getCardSize(): number {
