@@ -50,6 +50,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   private cardType!: CardType;
   private valueRangeList: ValueRange[] = [];
   private hassEntity!: HassEntity;
+  private content: TemplateResult[] = [];
 
   private get entity(): HassEntity {
     return this.hassEntity;
@@ -146,11 +147,37 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         );
         this.valueRangeList.push(valueRange);
       }
+
+      this.content = [];
+
+      for (let index = 0; index < this.valueRangeList.length; index++) {
+        const valueRange = this.valueRangeList[index];
+        this.content.push(html`
+        <div class=${classMap(this.controlClass)}>
+        <button class=${classMap(this.buttonLabelClass)} @click="${() =>
+          this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
+        <value-unit
+            .unit=${valueRange.value_start}
+            @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
+            @update=${this.onValueInputChange}
+        ></value-unit>
+        ${
+          valueRange.value_end != undefined
+            ? html`<value-unit
+                .unit=${valueRange.value_end}
+                @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
+                @update=${this.onValueInputChange}
+              ></value-unit>`
+            : ''
+        }
+        </div>
+        </div></div>`);
+      }
     }
 
-    for (const valueRange of this.valueRangeList) {
-      this.setButtonColors(valueRange);
-    }
+    // for (const valueRange of this.valueRangeList) {
+    //   this.setButtonColors(valueRange);
+    // }
 
     this.requestUpdate();
   }
@@ -191,35 +218,13 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       return Partial.error('Hot water dose card is not available for the Linea Mini', this.config);
     }
 
-    const content: TemplateResult[] = [];
-
-    for (let index = 0; index < this.valueRangeList.length; index++) {
-      const valueRange = this.valueRangeList[index];
-      content.push(html`
-      <div class=${classMap(this.controlClass)}>
-      <button class=${classMap(this.buttonLabelClass)} @click="${() =>
-        this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
-      <value-unit
-          .unit=${valueRange.value_start}
-          @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
-          @update=${this.onValueInputChange}
-      ></value-unit>
-      ${
-        valueRange.value_end != undefined
-          ? html`<value-unit
-              .unit=${valueRange.value_end}
-              @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.END)}
-              @update=${this.onValueInputChange}
-            ></value-unit>`
-          : ''
-      }
-      </div>
-      </div></div>`);
+    for (const valueRange of this.valueRangeList) {
+      this.setButtonColors(valueRange);
     }
 
     return html`<ha-card>
       ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
-      <div class=${classMap(this.rowClass)}>${content}</div>
+      <div class=${classMap(this.rowClass)}>${this.content}</div>
     </ha-card>`;
   }
 
