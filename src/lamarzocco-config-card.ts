@@ -45,7 +45,6 @@ window.customCards.push({
 @customElement('lamarzocco-config-card')
 export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   private _hass!: HomeAssistant;
-  // @property({ type: Object }) hass!: HomeAssistant;
   @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
   private cardType!: CardType;
   private valueRangeList: ValueRange[] = [];
@@ -77,9 +76,15 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     };
   }
 
-  private get buttonLabelClass(): ClassInfo {
+  private get buttonLabelClassEnabled(): ClassInfo {
     return {
-      'lmcc-button-label': true,
+      'lmcc-button-label-enabled': true,
+    };
+  }
+
+  private get buttonLabelClassDisabled(): ClassInfo {
+    return {
+      'lmcc-button-label-disabled': true,
     };
   }
 
@@ -104,6 +109,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
             typeToAttr[cardType] in hass.states[resp[i].entity_id].attributes
           ) {
             this.hassEntity = hass.states[resp[i].entity_id];
+            this.completeElements();
           }
         }
       },
@@ -116,46 +122,53 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   private buildElements(): void {
     if (!this.hass) return;
 
-    // Create objects on first run
-    if (this.valueRangeList.length === 0) {
-      // Find the entity based on the card type
-      this.findEntityFromCardType(this.hass, this.config.card_type);
+    this.valueRangeList = [];
+    this.findEntityFromCardType(this.hass, this.config.card_type);
+  }
 
-      if (!this.entity) return;
+  private completeElements(): void {
+    if (!this.entity) return;
 
-      // Create elements
-      switch (this.config.card_type) {
-        case CardSettingsType.AUTO_ON_OFF:
-          this.cardType = new AutoOnOffCard(this.hass, this.valueRangeList, this.entity);
-          break;
-        case CardSettingsType.PREBREW:
-          this.cardType = new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
-          break;
-        case CardSettingsType.DOSE:
-          this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
-          break;
-        case CardSettingsType.HOT_WATER_DOSE:
-          this.cardType = new HotWaterDoseCard(this.hass, this.valueRangeList, this.entity);
-          break;
-      }
+    // Create elements
+    switch (this.config.card_type) {
+      case CardSettingsType.AUTO_ON_OFF:
+        this.cardType = new AutoOnOffCard(this.hass, this.valueRangeList, this.entity);
+        break;
+      case CardSettingsType.PREBREW:
+        this.cardType = new PrewBrewCard(this.hass, this.valueRangeList, this.entity);
+        break;
+      case CardSettingsType.DOSE:
+        this.cardType = new DoseCard(this.hass, this.valueRangeList, this.entity);
+        break;
+      case CardSettingsType.HOT_WATER_DOSE:
+        this.cardType = new HotWaterDoseCard(this.hass, this.valueRangeList, this.entity);
+        break;
+    }
 
-      for (let i = 0; i < this.cardType.numValues; i++) {
-        const valueRange = new ValueRange(
-          this.entity.attributes,
-          this.cardType,
-          this.cardType.valueData[i]
-        );
-        this.valueRangeList.push(valueRange);
-      }
+    for (let i = 0; i < this.cardType.numValues; i++) {
+      const valueRange = new ValueRange(
+        this.entity.attributes,
+        this.cardType,
+        this.cardType.valueData[i]
+      );
+      this.valueRangeList.push(valueRange);
+    }
 
-      this.content = [];
+    this.generateHTML();
+    this.requestUpdate();
+  }
 
-      for (let index = 0; index < this.valueRangeList.length; index++) {
-        const valueRange = this.valueRangeList[index];
-        this.content.push(html`
+  private generateHTML(): void {
+    this.content = [];
+
+    for (let index = 0; index < this.valueRangeList.length; index++) {
+      const valueRange = this.valueRangeList[index];
+      this.content.push(html`
         <div class=${classMap(this.controlClass)}>
-        <button class=${classMap(this.buttonLabelClass)} @click="${() =>
-          this.onEnableDisable(valueRange)}}" id=${valueRange.label}>${valueRange.label}</button>
+        <button class=${classMap(
+          valueRange.enabled ? this.buttonLabelClassEnabled : this.buttonLabelClassDisabled
+        )} @click="${() => this.onEnableDisable(valueRange)}}" id=${valueRange.label}
+      }>${valueRange.label}</button>
         <value-unit
             .unit=${valueRange.value_start}
             @stepChange=${(e: CustomEvent) => this.onValueStepChange(e, ValueType.START)}
@@ -172,19 +185,14 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         }
         </div>
         </div></div>`);
-      }
     }
-
-    // for (const valueRange of this.valueRangeList) {
-    //   this.setButtonColors(valueRange);
-    // }
-
-    this.requestUpdate();
   }
 
   set hass(hass: HomeAssistant) {
-    this._hass = hass;
-    this.buildElements();
+    if (!this._hass) {
+      this._hass = hass;
+      this.buildElements();
+    }
   }
 
   get hass(): HomeAssistant {
@@ -218,10 +226,6 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       return Partial.error('Hot water dose card is not available for the Linea Mini', this.config);
     }
 
-    for (const valueRange of this.valueRangeList) {
-      this.setButtonColors(valueRange);
-    }
-
     return html`<ha-card>
       ${this.hasNameInHeader ? Partial.headerName(this.name!) : ''}
       <div class=${classMap(this.rowClass)}>${this.content}</div>
@@ -242,23 +246,12 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       throw new Error('Invalid card type');
     }
 
-    this.valueRangeList = [];
     this.config = config;
     this.buildElements();
   }
 
   getCardSize(): number {
     return CARD_SIZE;
-  }
-
-  private setButtonColors(valueRange: ValueRange): void {
-    const root = this.shadowRoot;
-    const button = root!.getElementById(valueRange.label);
-    if (button) {
-      const color = valueRange.enabled ? 'var(--success-color)' : 'var(--lmcc-off-color)';
-      button.style.color = color;
-      button.style.border = '2px solid ' + color;
-    }
   }
 
   private adjustMinMax(valueRange: ValueRange): void {
@@ -272,8 +265,9 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     if (this.cardType.funcToggle != undefined) {
       valueRange.enabled = !valueRange.enabled;
 
-      this.setButtonColors(valueRange);
       this.cardType.funcToggle(valueRange);
+      this.generateHTML();
+      this.requestUpdate();
     }
   }
 
@@ -353,10 +347,17 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
         padding: 4px;
       }
 
-      .lmcc-button-label {
+      .lmcc-button-label-enabled {
         background-color: var(--primary-background-color);
-        color: var(--lmcc-text-color);
+        color: var(--success-color);
         border: 2px solid var(--success-color);
+        font-weight: bolder;
+      }
+
+      .lmcc-button-label-disabled {
+        background-color: var(--primary-background-color);
+        color: var(--lmcc-off-color);
+        border: 2px solid var(--lmcc-off-color);
         font-weight: bolder;
       }
 
