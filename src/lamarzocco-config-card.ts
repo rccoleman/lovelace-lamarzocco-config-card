@@ -9,7 +9,6 @@ import {
   property,
   TemplateResult,
 } from 'lit-element';
-// import { repeat } from 'lit-html/directives/repeat.js';
 import { ClassInfo, classMap } from 'lit-html/directives/class-map';
 import './components/value-unit.component';
 import { CARD_SIZE, CARD_VERSION, MODEL_NAME } from './const';
@@ -44,8 +43,9 @@ window.customCards.push({
 });
 @customElement('lamarzocco-config-card')
 export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
-  private _hass!: HomeAssistant;
   @property({ attribute: false }) private config!: LaMarzoccoConfigCardConfig;
+
+  private _hass!: HomeAssistant;
   private cardType!: CardType;
   private valueRangeList: ValueRange[] = [];
   private hassEntity!: HassEntity;
