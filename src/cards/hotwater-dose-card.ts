@@ -26,12 +26,10 @@ export class HotWaterDoseCard extends CardType {
       return Promise.resolve(undefined);
     }
 
-    console.log('Calling set_dose_hot_water service with %s', valueRange.value_start.toString());
+    console.debug('Calling set_dose_hot_water service with %s', valueRange.value_start.toString());
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_dose_hot_water', {
       seconds: valueRange.value_start.toString(),
     });
-
-    // return Promise.resolve(undefined);
   }
 }

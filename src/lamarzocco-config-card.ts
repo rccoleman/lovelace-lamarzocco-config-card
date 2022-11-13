@@ -26,6 +26,7 @@ import { PrewBrewCard } from './cards/prebrew-card';
 import { AutoOnOffCard } from './cards/autoonoff-card';
 import { DoseCard } from './cards/dose-card';
 import { HotWaterDoseCard } from './cards/hotwater-dose-card';
+import { PreinfusionCard } from './cards/preinfusion-card';
 
 console.info(
   `%c  LA-MARZOCCO-CONFIG-CARD  \n%c  Version ${CARD_VERSION}    `,
@@ -101,6 +102,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
           [CardSettingsType.PREBREW]: 'prebrewing_ton_k1',
           [CardSettingsType.DOSE]: 'dose_k1',
           [CardSettingsType.HOT_WATER_DOSE]: 'dose_hot_water',
+          [CardSettingsType.PREINFUSION]: 'preinfusion_k1',
         };
 
         for (let i = 0; i < resp.length; i++) {
@@ -143,11 +145,15 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       case CardSettingsType.HOT_WATER_DOSE:
         this.cardType = new HotWaterDoseCard(this.hass, this.valueRangeList, this.entity);
         break;
+      case CardSettingsType.PREINFUSION:
+        this.cardType = new PreinfusionCard(this.hass, this.valueRangeList, this.entity);
+        break;
     }
 
     for (let i = 0; i < this.cardType.numValues; i++) {
       const valueRange = new ValueRange(
-        this.entity.attributes,
+        this.hass,
+        this.entity.entity_id,
         this.cardType,
         this.cardType.valueData[i]
       );
@@ -161,12 +167,13 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   private generateHTML(): void {
     this.content = [];
 
-    for (let index = 0; index < this.valueRangeList.length; index++) {
-      const valueRange = this.valueRangeList[index];
+    for (const valueRange of this.valueRangeList) {
       this.content.push(html`
         <div class=${classMap(this.controlClass)}>
         <button class=${classMap(
-          valueRange.enabled ? this.buttonLabelClassEnabled : this.buttonLabelClassDisabled
+          valueRange.isEnabled(this._hass)
+            ? this.buttonLabelClassEnabled
+            : this.buttonLabelClassDisabled
         )} @click="${() => this.onEnableDisable(valueRange)}}" id=${valueRange.label}
       }>${valueRange.label}</button>
         <value-unit
@@ -192,6 +199,18 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     if (!this._hass) {
       this._hass = hass;
       this.buildElements();
+    } else {
+      let needsUpdate = false;
+      for (const valueRange of this.valueRangeList) {
+        if ((needsUpdate = valueRange.updateHass(this._hass, hass))) break;
+      }
+
+      this._hass = hass;
+
+      if (needsUpdate) {
+        this.generateHTML();
+        this.requestUpdate();
+      }
     }
   }
 
@@ -205,10 +224,14 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     }
 
     if (
-      this.config.card_type == CardSettingsType.PREBREW &&
+      (this.config.card_type == CardSettingsType.PREBREW ||
+        this.config.card_type == CardSettingsType.PREINFUSION) &&
       this.entity.attributes[MODEL_NAME] == Models.GS3_MP
     ) {
-      return Partial.error('Prebrew card is not available for the GS3 MP', this.config);
+      return Partial.error(
+        'Prebrew and Preinfusion cards are not available for the GS3 MP',
+        this.config
+      );
     }
 
     if (
@@ -241,7 +264,8 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       config.card_type != CardSettingsType.AUTO_ON_OFF &&
       config.card_type != CardSettingsType.PREBREW &&
       config.card_type != CardSettingsType.DOSE &&
-      config.card_type != CardSettingsType.HOT_WATER_DOSE
+      config.card_type != CardSettingsType.HOT_WATER_DOSE &&
+      config.card_type != CardSettingsType.PREINFUSION
     ) {
       throw new Error('Invalid card type');
     }
@@ -265,9 +289,10 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
     if (this.cardType.funcToggle != undefined) {
       valueRange.enabled = !valueRange.enabled;
 
-      this.cardType.funcToggle(valueRange);
-      this.generateHTML();
-      this.requestUpdate();
+      this.cardType.funcToggle(valueRange).then(() => {
+        this.generateHTML();
+        this.requestUpdate();
+      });
     }
   }
 

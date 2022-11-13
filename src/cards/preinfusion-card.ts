@@ -2,33 +2,33 @@ import { SWITCH_DOMAIN, SERVICE_DOMAIN, MODEL_NAME } from '../const';
 import { ValueRange } from '../value-range';
 import { CardType } from '../card-type';
 import { Models } from '../types';
-export class PrewBrewCard extends CardType {
+export class PreinfusionCard extends CardType {
   public float = true;
   public minValue = 0;
-  public maxValue = 5.9;
+  public maxValue = 24.9;
   public valueData = [
     {
       label: 'Key 1',
-      attrStart: 'prebrewing_ton_k1',
-      attrEnd: 'prebrewing_toff_k1',
+      attrStart: 'preinfusion_k1',
+      attrEnd: undefined,
       attrEnabled: 'state',
     },
     {
       label: 'Key 2',
-      attrStart: 'prebrewing_ton_k2',
-      attrEnd: 'prebrewing_toff_k2',
+      attrStart: 'preinfusion_k2',
+      attrEnd: undefined,
       attrEnabled: 'state',
     },
     {
       label: 'Key 3',
-      attrStart: 'prebrewing_ton_k3',
-      attrEnd: 'prebrewing_toff_k3',
+      attrStart: 'preinfusion_k3',
+      attrEnd: undefined,
       attrEnabled: 'state',
     },
     {
       label: 'Key 4',
-      attrStart: 'prebrewing_ton_k4',
-      attrEnd: 'prebrewing_toff_k4',
+      attrStart: 'preinfusion_k4',
+      attrEnd: undefined,
       attrEnabled: 'state',
     },
   ];
@@ -51,19 +51,15 @@ export class PrewBrewCard extends CardType {
     index++;
 
     console.log(
-      'Calling set_prebrew_times service with %d, %s, %s',
+      'Calling set_preinfusion_time service with %d, %s',
       index,
-      valueRange.value_start.toString(),
-      valueRange.value_end?.toString()
+      valueRange.value_start.toString()
     );
 
-    return this.hass.callService(SERVICE_DOMAIN, 'set_prebrew_times', {
+    return this.hass.callService(SERVICE_DOMAIN, 'set_preinfusion_time', {
       key: index,
-      seconds_on: valueRange.value_start.toString(),
-      seconds_off: valueRange.value_end?.toString(),
+      seconds: valueRange.value_start.toString(),
     });
-
-    // return Promise.resolve(undefined);
   }
 
   funcToggle(valueRange: ValueRange): Promise<void> {
@@ -73,7 +69,11 @@ export class PrewBrewCard extends CardType {
 
     const service = valueRange.enabled ? 'turn_on' : 'turn_off';
 
-    console.debug('Calling set_enable_prebrew %s service with %s', service, this.entity.entity_id);
+    console.debug(
+      'Calling set_enable_preinfusion %s service with %s',
+      service,
+      this.entity.entity_id
+    );
 
     for (const vr of this.valueRangeList) {
       vr.enabled = valueRange.enabled;

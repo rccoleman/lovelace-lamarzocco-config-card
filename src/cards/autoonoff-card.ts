@@ -26,7 +26,7 @@ export class AutoOnOffCard extends CardType {
 
     if (!valueRange) return Promise.resolve(undefined);
 
-    console.log(
+    console.debug(
       'Calling set_on_off_times service with %s, %s, %s',
       valueRange.label.toLowerCase(),
       valueRange.value_start.value,
@@ -38,8 +38,6 @@ export class AutoOnOffCard extends CardType {
       hour_on: valueRange.value_start.value,
       hour_off: valueRange.value_end?.value,
     });
-
-    // return Promise.resolve(undefined);
   }
 
   funcToggle(valueRange: ValueRange): Promise<void> {
@@ -49,7 +47,7 @@ export class AutoOnOffCard extends CardType {
 
     if (!valueRange) return Promise.resolve(undefined);
 
-    console.log(
+    console.debug(
       'Calling set_enable_auto_on_off service with %s, %s',
       valueRange.label.toLowerCase(),
       valueRange.enabled

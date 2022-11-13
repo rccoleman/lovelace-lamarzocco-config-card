@@ -31,6 +31,7 @@ export enum CardSettingsType {
   PREBREW = 'prebrew',
   DOSE = 'dose',
   HOT_WATER_DOSE = 'hot_water_dose',
+  PREINFUSION = 'preinfusion',
 }
 
 export enum Models {

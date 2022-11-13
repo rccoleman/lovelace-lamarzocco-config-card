@@ -54,13 +54,11 @@ export class DoseCard extends CardType {
     // API expects key values starting at 1
     index++;
 
-    console.log('Calling set_dose service with %d, %s', index, valueRange.value_start.toString());
+    console.debug('Calling set_dose service with %d, %s', index, valueRange.value_start.toString());
 
     return this.hass.callService(SERVICE_DOMAIN, 'set_dose', {
       key: index,
       pulses: valueRange.value_start.toString(),
     });
-
-    // return Promise.resolve(undefined);
   }
 }
