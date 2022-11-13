@@ -171,7 +171,7 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
       this.content.push(html`
         <div class=${classMap(this.controlClass)}>
         <button class=${classMap(
-          valueRange.isEnabled(this._hass)
+          valueRange.isEnabled(this.hass)
             ? this.buttonLabelClassEnabled
             : this.buttonLabelClassDisabled
         )} @click="${() => this.onEnableDisable(valueRange)}}" id=${valueRange.label}
@@ -196,16 +196,15 @@ export class LaMarzoccoConfigCard extends LitElement implements LovelaceCard {
   }
 
   set hass(hass: HomeAssistant) {
-    if (!this._hass) {
-      this._hass = hass;
+    const old_hass = this.hass;
+    this._hass = hass;
+
+    if (!old_hass) {
       this.buildElements();
     } else {
-      let needsUpdate = false;
-      for (const valueRange of this.valueRangeList) {
-        if ((needsUpdate = valueRange.updateHass(this._hass, hass))) break;
-      }
-
-      this._hass = hass;
+      const needsUpdate = this.valueRangeList.some((valueRange) =>
+        valueRange.updateHass(old_hass, hass)
+      );
 
       if (needsUpdate) {
         this.generateHTML();
