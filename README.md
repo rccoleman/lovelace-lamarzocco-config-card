@@ -131,6 +131,17 @@ YAML config:
   card_type: hot_water_dose
 ```
 
+### Preinfusion (only for GS3 AV and LM)
+
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/hot-water-dose-default.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  card_type: preinfusion
+```
+
 ## Customized cards
 
 These are examples of each card variant with some additional styling using the [`card-mod` plugin](https://github.com/thomasloven/lovelace-card-mod)
