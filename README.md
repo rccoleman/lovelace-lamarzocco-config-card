@@ -85,6 +85,14 @@ The Hot Water Dose card variant has no toggle functionality and clicking on the 
 
 The values represent the number of seconds to dispense hot water using the front-panel button.  The default is 8s.
 
+### Preinfusion
+
+Use `card_type: preinfusion` for the Preinfusion card variant.
+
+Preinfusion can only be enabled or disabled at the machine level (not per key), and each `Key #` header in the Prebrew variant is a button that enables or disables for the machine. Clicking one button will toggle the rest as well to indicate the over all state for the machine.
+
+The value represents the amount of preinfusion time in seconds before the pump turns on.  The allowable range is 0-24.9s.
+
 ## Default configuration
 
 ### Auto On/Off Hours
@@ -133,7 +141,7 @@ YAML config:
 
 ### Preinfusion (only for GS3 AV and LM)
 
-![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/preinfusion.png)
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Preinfusion.png)
 
 YAML config:
 
@@ -216,7 +224,7 @@ YAML config:
 
 ### Preinfusion (only for GS3 AV and LM)
 
-![Hot Water Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/preinfusion.png)
+![Hot Water Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/Preinfusion.png)
 
 YAML config:
 
