@@ -241,12 +241,12 @@ YAML config:
 
 ## Options
 
-| Name      | Type   | Requirement  | Description                                                   | Default                  |
-| --------- | ------ | ------------ | ------------------------------------------------------------- | ------------------------ |
-| type      | string | **Required** | `custom:lamarzocco-config-card`                               | None                     |
-| card_type | string | **Required** | Must be one of `auto`, `prebrew`, `dose`, or `hot_water_dose` | None                     |
-| name      | string | **Optional** | Card name                                                     | Entity's `friendly_name` |
-| hide      | object | **Optional** | Hide object                                                   | None                     |
+| Name      | Type   | Requirement  | Description                                                                   | Default                  |
+| --------- | ------ | ------------ | ----------------------------------------------------------------------------- | ------------------------ |
+| type      | string | **Required** | `custom:lamarzocco-config-card`                                               | None                     |
+| card_type | string | **Required** | Must be one of `auto`, `prebrew`, `dose`,  `hot_water_dose`, or `preinfusion` | None                     |
+| name      | string | **Optional** | Card name                                                                     | Entity's `friendly_name` |
+| hide      | object | **Optional** | Hide object                                                                   | None                     |
 
 ### Hide Object
 
