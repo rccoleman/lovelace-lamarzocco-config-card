@@ -133,7 +133,7 @@ YAML config:
 
 ### Preinfusion (only for GS3 AV and LM)
 
-![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/hot-water-dose-default.png)
+![Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/preinfusion.png)
 
 YAML config:
 
@@ -207,6 +207,23 @@ YAML config:
 - type: 'custom:lamarzocco-config-card'
   card_type: hot_water_dose
   name: Hot Water Dose
+  style: |
+    ha-card {
+      background-color: var(--primary-background-color);
+      --lamarzocco-config-elements-background-color: var(--primary-background-color);
+    }
+```
+
+### Preinfusion (only for GS3 AV and LM)
+
+![Hot Water Dose](https://raw.github.com/rccoleman/lovelace-lamarzocco-config-card/master/examples/preinfusion.png)
+
+YAML config:
+
+```yaml
+- type: 'custom:lamarzocco-config-card'
+  card_type: preinfusion
+  name: Preinfusion
   style: |
     ha-card {
       background-color: var(--primary-background-color);
